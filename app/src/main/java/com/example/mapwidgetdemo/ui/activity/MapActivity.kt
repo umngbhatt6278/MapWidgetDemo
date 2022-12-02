@@ -18,7 +18,6 @@ import android.os.Handler
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
-import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
