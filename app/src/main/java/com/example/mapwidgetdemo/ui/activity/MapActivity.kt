@@ -43,7 +43,6 @@ import com.google.android.gms.maps.model.MarkerOptions
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 
 
 open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener,
@@ -63,6 +62,7 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
     var zoomPadding: Double? = null
     private val MIN_TIME: Long = 400
     private val MIN_DISTANCE = 1000f
+    private var isVideoStarted = false
 
     private val wordViewModel: MarkerViewModel by viewModels {
         WordViewModelFactory((application as MainApplication).repository)
@@ -106,15 +106,6 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_map)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
-        Log.e(TAG,"onCreate() --> ${intent.getBooleanExtra("IS_FROM_WIDGET", false)}")
-
-        if (intent.getBooleanExtra("IS_FROM_WIDGET", false)){
-            videoUri = createFileUri()!!
-            if (checkCameraHardware(this)) {
-                contract.launch(videoUri)
-            }
-        }
 
 
         locationCallback = object : LocationCallback() {
@@ -324,6 +315,19 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
         val intent = Intent(this, VideoActivity::class.java)
         startActivity(intent)
         return true
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.e(TAG,"onCreate() --> ${intent.getBooleanExtra("IS_FROM_WIDGET", false)}")
+
+        if (!isVideoStarted && intent.getBooleanExtra("IS_FROM_WIDGET", false)){
+            videoUri = createFileUri()!!
+            if (checkCameraHardware(this)) {
+                contract.launch(videoUri)
+            }
+            isVideoStarted = true
+        }
     }
 
     override fun onPause() {
