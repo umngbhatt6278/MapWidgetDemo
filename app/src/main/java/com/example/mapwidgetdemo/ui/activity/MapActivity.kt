@@ -37,18 +37,9 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
     private val TAG = "mytag"
     private val REQUEST_LOCATION_PERMISSION = 1
     private var locationManager: LocationManager? = null
-
     var zoomWidth: Int? = null
     var zoomHeight: Int? = null
     var zoomPadding: Double? = null
-
-    var sydney = LatLng(-34.00, 151.00)
-    var TamWorth = LatLng(-31.083332, 150.916672)
-    var NewCastle = LatLng(-32.916668, 151.750000)
-    var Brisbane = LatLng(-27.470125, 153.021072)
-
-    var locationArrayList: ArrayList<LatLng>? = null
-
     private val MIN_TIME: Long = 400
     private val MIN_DISTANCE = 1000f
 
@@ -110,18 +101,10 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-
-
             zoomWidth = resources.displayMetrics.widthPixels
             zoomHeight = resources.displayMetrics.heightPixels;
             zoomPadding = (zoomWidth!! * 0.10); // offset
 
-            locationArrayList = ArrayList()
-
-            locationArrayList?.add(sydney)
-            locationArrayList?.add(TamWorth)
-            locationArrayList?.add(NewCastle)
-            locationArrayList?.add(Brisbane)
         }
 
 
