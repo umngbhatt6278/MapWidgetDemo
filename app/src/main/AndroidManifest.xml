@@ -45,14 +45,6 @@
         </receiver>
 
         <activity
-            android:name=".ui.activity.OpenCameraActivity"
-            android:exported="false">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-
-        <activity
             android:name=".ui.activity.MapActivity"
             android:exported="true">
             <intent-filter>
