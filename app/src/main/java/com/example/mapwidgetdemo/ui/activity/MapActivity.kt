@@ -275,7 +275,7 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
                 val writeAccepted = grantResults[1] === PackageManager.PERMISSION_GRANTED
                 val readAccepted = grantResults[2] === PackageManager.PERMISSION_GRANTED
                 if (locationAccepted && writeAccepted && readAccepted) {
-                    onMapReady(map)
+//                    onMapReady(map)
                 } else {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         if (shouldShowRequestPermissionRationale(ACCESS_FINE_LOCATION)) {
