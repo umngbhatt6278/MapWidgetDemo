@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -245,6 +246,7 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
         val latLng = LatLng(location.latitude, location.longitude)
         val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10f)
 //        map.animateCamera(cameraUpdate)
+        Log.d("mytag","onLocationChanged ==> " + latLng.toString())
         locationManager?.removeUpdates(this);
     }
 
