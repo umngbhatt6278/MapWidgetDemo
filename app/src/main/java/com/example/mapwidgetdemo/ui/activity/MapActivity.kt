@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -31,7 +32,8 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 
 
-open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener {
+open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener,
+    GoogleMap.OnMarkerClickListener {
 
     private lateinit var map: GoogleMap
     private val TAG = "mytag"
@@ -112,22 +114,19 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
 
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
-
         map.uiSettings.isMapToolbarEnabled = false
         if (ActivityCompat.checkSelfPermission(
                 this,
-                Manifest.permission.ACCESS_FINE_LOCATION
+                ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
                 this,
-                Manifest.permission.ACCESS_COARSE_LOCATION
+                ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             return
         }
         map.isMyLocationEnabled = true
-
         val builder = LatLngBounds.Builder()
-
         wordViewModel.allWords.observe(this@MapActivity) { words ->
             // Update the cached copy of the words in the adapter.
             words.let {
@@ -137,7 +136,7 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
                     builder.include(LatLng(data?.get(i)?.latitude!!, data?.get(i)?.longitude!!))
                     createMarker(
                         LatLng(data[i].latitude, data[i].longitude),
-                        "Title One",
+                        "Title One ==> $i",
                         "Snippet1$i"
                     )
                 }
@@ -164,6 +163,8 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
         }
 
 
+        map.setOnMarkerClickListener(this)
+
     }
 
     protected open fun createMarker(
@@ -172,11 +173,7 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
         snippet: String?
     ): Marker? {
         return map.addMarker(
-            MarkerOptions()
-                .position(latlang)
-                .anchor(0.5f, 0.5f)
-                .title(title)
-                .snippet(snippet)
+            MarkerOptions().position(latlang).anchor(0.5f, 0.5f).title(title).snippet(snippet)
         )
     }
 
@@ -208,6 +205,7 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
                 val writeAccepted = grantResults[1] === PackageManager.PERMISSION_GRANTED
                 val readAccepted = grantResults[2] === PackageManager.PERMISSION_GRANTED
                 if (locationAccepted && writeAccepted && readAccepted) {
+                    onMapReady(map)
                 } else {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         if (shouldShowRequestPermissionRationale(ACCESS_FINE_LOCATION)) {
@@ -248,5 +246,12 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
         val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10f)
 //        map.animateCamera(cameraUpdate)
         locationManager?.removeUpdates(this);
+    }
+
+    override fun onMarkerClick(marker: Marker?): Boolean {
+        Toast.makeText(this, marker?.title, Toast.LENGTH_SHORT).show();
+        val intent = Intent(this, VideoActivity::class.java)
+        startActivity(intent)
+        return true
     }
 }
