@@ -1,6 +1,7 @@
 package com.example.mapwidgetdemo.widgetprovider
 
 import android.app.PendingIntent
+import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
@@ -40,7 +41,7 @@ internal fun updateAppWidget(
 ) {
     val intent = Intent(context, MapActivity::class.java)
     intent.putExtra("IS_FROM_WIDGET", true)
-    val pendingIntent = PendingIntent.getActivity(context, 0, intent, 0)
+    val pendingIntent = PendingIntent.getActivity(context, 0, intent, FLAG_IMMUTABLE)
     // Construct the RemoteViews object
     val views = RemoteViews(context.packageName, R.layout.record_video_widget)
     views.setOnClickPendingIntent(R.id.appwidget_video, pendingIntent)

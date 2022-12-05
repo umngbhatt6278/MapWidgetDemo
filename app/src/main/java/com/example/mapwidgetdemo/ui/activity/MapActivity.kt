@@ -58,8 +58,8 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
     var zoomWidth: Int? = null
     var zoomHeight: Int? = null
     var zoomPadding: Double? = null
-    private val MIN_TIME: Long = 0
-    private val MIN_DISTANCE = 0f
+    private val MIN_TIME: Long = 10000
+    private val MIN_DISTANCE = 10f
     private var isVideoStarted = false
     var criteria: Criteria? = null
     var bestProvider: String? = null
@@ -111,9 +111,8 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
             val location = locationManager!!.getLastKnownLocation(provider!!)
             if (location != null) {
                 Log.d("Find Location", "in find_location" + location.latitude + location.longitude)
-                location?.let {
-                    saveVideoWithLocation(location.latitude, location.longitude)
-                }
+                saveVideoWithLocation(location.latitude, location.longitude)
+                break
             }
         }
     }
