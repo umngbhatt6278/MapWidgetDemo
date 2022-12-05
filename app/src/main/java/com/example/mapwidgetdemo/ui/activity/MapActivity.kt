@@ -87,7 +87,9 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
             } else {
                 fusedLocationClient.lastLocation
                     .addOnSuccessListener { location ->
-                        saveVideoWithLocation(location.latitude, location.longitude)
+                        location?.let {
+                            saveVideoWithLocation(location.latitude, location.longitude)
+                        }
                     }
                     .addOnFailureListener {
                         Log.e("TAG", "fetchLocation() --> Fail")
