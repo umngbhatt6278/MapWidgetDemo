@@ -1,14 +1,18 @@
 package com.example.mapwidgetdemo.ui.activity
 
-import androidx.appcompat.app.AppCompatActivity
+import android.net.Uri
 import android.os.Bundle
-import com.example.mapwidgetdemo.R
+import android.os.StrictMode
+import android.os.StrictMode.VmPolicy
+import androidx.appcompat.app.AppCompatActivity
 import com.example.mapwidgetdemo.databinding.ActivityVideoBinding
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.source.hls.HlsMediaSource
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
-import java.net.URL
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.exoplayer2.upstream.DataSource
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.util.Util
+
 
 class VideoActivity : AppCompatActivity() {
 
@@ -16,23 +20,38 @@ class VideoActivity : AppCompatActivity() {
     private var exoPlayer: ExoPlayer? = null
     private var playbackPosition = 0L
     private var playWhenReady = true
+    private var videoPath = ""
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityVideoBinding.inflate(layoutInflater)
+
+        //disable strict mode policies
+        val builder = VmPolicy.Builder()
+        StrictMode.setVmPolicy(builder.build())
+
+        intent.extras.let {
+            videoPath = intent.extras?.get("VideoPath").toString()
+        }
         setContentView(binding.root)
         preparePlayer()
     }
+
+
+
 
     private fun preparePlayer() {
         exoPlayer = ExoPlayer.Builder(this).build()
         exoPlayer?.playWhenReady = true
         binding.playerView.player = exoPlayer
-        val defaultHttpDataSourceFactory = DefaultHttpDataSource.Factory()
-        val mediaItem =
-            MediaItem.fromUri(URL)
-        val mediaSource =
-            HlsMediaSource.Factory(defaultHttpDataSourceFactory).createMediaSource(mediaItem)
+
+        val dataSourceFactory: DataSource.Factory =
+            DefaultDataSourceFactory(this, Util.getUserAgent(this, "com.example.mapwidgetdemo"))
+
+
+        val mediaItem = MediaItem.fromUri(Uri.parse(videoPath))
+        val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
         exoPlayer?.apply {
             setMediaSource(mediaSource)
             seekTo(playbackPosition)
@@ -40,6 +59,8 @@ class VideoActivity : AppCompatActivity() {
             prepare()
         }
     }
+
+
 
     private fun releasePlayer() {
         exoPlayer?.let { player ->
@@ -49,6 +70,7 @@ class VideoActivity : AppCompatActivity() {
             exoPlayer = null
         }
     }
+
     override fun onStop() {
         super.onStop()
         releasePlayer()
@@ -62,10 +84,5 @@ class VideoActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         releasePlayer()
-    }
-
-    companion object {
-        const val URL =
-            "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8"
     }
 }

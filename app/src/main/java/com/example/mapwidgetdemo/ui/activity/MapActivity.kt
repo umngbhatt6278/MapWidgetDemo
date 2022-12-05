@@ -1,20 +1,18 @@
 package com.example.mapwidgetdemo.ui.activity
 
-import android.Manifest
 import android.Manifest.permission.*
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
-import android.location.LocationRequest
+import android.location.*
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
+import android.os.storage.StorageManager.ACTION_MANAGE_STORAGE
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
@@ -60,9 +58,11 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
     var zoomWidth: Int? = null
     var zoomHeight: Int? = null
     var zoomPadding: Double? = null
-    private val MIN_TIME: Long = 400
-    private val MIN_DISTANCE = 1000f
+    private val MIN_TIME: Long = 0
+    private val MIN_DISTANCE = 0f
     private var isVideoStarted = false
+    var criteria: Criteria? = null
+    var bestProvider: String? = null
 
     private val wordViewModel: MarkerViewModel by viewModels {
         WordViewModelFactory((application as MainApplication).repository)
@@ -75,33 +75,57 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
     }
 
     private fun fetchCurrentLocation() {
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            val manager: LocationManager =
-                getSystemService(Context.LOCATION_SERVICE) as LocationManager
-            if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-            } else {
-                fusedLocationClient.lastLocation
-                    .addOnSuccessListener { location ->
-                        location?.let {
-                            saveVideoWithLocation(location.latitude, location.longitude)
-                        }
+        if (checkPermission()) {
+            getCurrentLocation(this)
+        }
+    }
+
+    open fun getCurrentLocation(con: Context) {
+        Log.d("Find Location", "in find_location")
+        val location_context = LOCATION_SERVICE
+        locationManager = con.getSystemService(location_context) as LocationManager
+        val providers = locationManager!!.allProviders
+        for (provider in providers) {
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    this,
+                    ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return
+            }
+            locationManager?.requestLocationUpdates(provider, MIN_TIME, MIN_DISTANCE,
+                object : LocationListener {
+                    override fun onLocationChanged(location: Location) {
+
                     }
-                    .addOnFailureListener {
-                        Log.e("TAG", "fetchLocation() --> Fail")
+
+                    override fun onStatusChanged(
+                        provider: String?, status: Int,
+                        extras: Bundle?
+                    ) {
                     }
+                })
+            val location = locationManager!!.getLastKnownLocation(provider!!)
+            if (location != null) {
+                Log.d("Find Location", "in find_location" + location.latitude + location.longitude)
+                location?.let {
+                    saveVideoWithLocation(location.latitude, location.longitude)
+                }
             }
         }
     }
 
     private fun saveVideoWithLocation(latitude: Double, longitude: Double) {
-        wordViewModel.insert(MarkerModel(latitude = latitude,
-            longitude = longitude,
-            videopath = videoUri.toString()))
+        wordViewModel.insert(
+            MarkerModel(
+                latitude = latitude,
+                longitude = longitude,
+                videopath = videoUri.toString()
+            )
+        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -113,9 +137,9 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 locationResult ?: return
-                if (locationResult.locations.isNotEmpty()){
+                if (locationResult.locations.isNotEmpty()) {
                     for (location in locationResult.locations) {
-                        saveVideoWithLocation(location.latitude, location.longitude)
+//                        saveVideoWithLocation(location.latitude, location.longitude)
                     }
                 }
             }
@@ -124,7 +148,6 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
-
         if (!checkPermission()) {
             requestPermission()
         } else {
@@ -141,6 +164,7 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
                         this
                     )
                     mapFragment.getMapAsync(this)
+//                    find_Location(this)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -190,12 +214,12 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
             words.let {
                 val data = it
 
-                if (!data.isNullOrEmpty()){
+                if (!data.isNullOrEmpty()) {
                     for (i in data?.indices!!) {
                         builder.include(LatLng(data?.get(i)?.latitude!!, data?.get(i)?.longitude!!))
                         createMarker(
                             LatLng(data[i].latitude, data[i].longitude),
-                            "Title One ==> $i",
+                            data?.get(i)?.videopath,
                             "Snippet1$i"
                         )
                     }
@@ -250,7 +274,13 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
     open fun requestPermission() {
         ActivityCompat.requestPermissions(
             this,
-            arrayOf(ACCESS_FINE_LOCATION, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE, CAMERA, RECORD_AUDIO),
+            arrayOf(
+                ACCESS_FINE_LOCATION,
+                WRITE_EXTERNAL_STORAGE,
+                READ_EXTERNAL_STORAGE,
+                CAMERA,
+                RECORD_AUDIO
+            ),
             REQUEST_LOCATION_PERMISSION
         )
     }
@@ -308,23 +338,25 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
         val latLng = LatLng(location.latitude, location.longitude)
         val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10f)
 //        map.animateCamera(cameraUpdate)
-        Log.d("mytag","onLocationChanged ==> " + latLng.toString())
+        Log.d("mytag", "onLocationChanged ==> " + latLng.toString())
         locationManager?.removeUpdates(this);
     }
 
     override fun onMarkerClick(marker: Marker?): Boolean {
         Toast.makeText(this, marker?.title, Toast.LENGTH_SHORT).show();
-        val intent = Intent(this, VideoActivity::class.java)
+        val intent = Intent(this, VideoActivity::class.java).putExtra("VideoPath", marker?.title)
         startActivity(intent)
         return true
     }
 
     override fun onResume() {
         super.onResume()
-        Log.e(TAG,"onCreate() --> ${intent.getBooleanExtra("IS_FROM_WIDGET", false)}")
+        Log.e(TAG, "onCreate() --> ${intent.getBooleanExtra("IS_FROM_WIDGET", false)}")
 
-        if (!isVideoStarted && intent.getBooleanExtra("IS_FROM_WIDGET", false)){
-            videoUri = createFileUri()!!
+        if (!isVideoStarted && intent.getBooleanExtra("IS_FROM_WIDGET", false)) {
+            createFileUri()?.let {
+                videoUri = it
+            }
             if (checkCameraHardware(this)) {
                 contract.launch(videoUri)
             }
