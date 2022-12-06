@@ -351,7 +351,6 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
     }
 
     override fun onMarkerClick(marker: Marker?): Boolean {
-//        Toast.makeText(this, marker?.title, Toast.LENGTH_SHORT).show();
         val intent = Intent(this, VideoActivity::class.java).putExtra("VideoPath", marker?.title)
         startActivity(intent)
         return true
