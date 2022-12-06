@@ -6,16 +6,15 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.location.*
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.os.Handler
-import android.os.storage.StorageManager.ACTION_MANAGE_STORAGE
 import android.provider.Settings
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -34,10 +33,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.LatLngBounds
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -214,16 +210,16 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
                 val data = it
 
                 if (!data.isNullOrEmpty()) {
-                    for (i in data?.indices!!) {
-                        builder.include(LatLng(data?.get(i)?.latitude!!, data?.get(i)?.longitude!!))
+                    for (i in data.indices) {
+                        builder.include(LatLng(data[i].latitude, data[i].longitude))
                         createMarker(
                             LatLng(data[i].latitude, data[i].longitude),
-                            data?.get(i)?.videopath,
+                            data[i].videopath,
                             "Snippet1$i"
                         )
                     }
 
-                    val bounds = builder.build();
+                    val bounds = builder.build()
                     val handler = Handler()
                     handler.postDelayed(Runnable {
                         map.animateCamera(
@@ -255,8 +251,20 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
         title: String?,
         snippet: String?
     ): Marker? {
+
+        val height = 100
+        val width = 100
+        val bitmapdraw = resources.getDrawable(R.drawable.ic_pin) as BitmapDrawable
+        val b = bitmapdraw.bitmap
+        val smallMarker = Bitmap.createScaledBitmap(b, width, height, false)
+
         return map.addMarker(
-            MarkerOptions().position(latlang).anchor(0.5f, 0.5f).title(title).snippet(snippet)
+            MarkerOptions()
+                .icon(BitmapDescriptorFactory.fromBitmap(smallMarker))
+                .position(latlang)
+                .anchor(0.5f, 0.5f)
+                .title(title)
+                .snippet(snippet)
         )
     }
 
@@ -296,6 +304,7 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
                 val locationAccepted = grantResults[0] === PackageManager.PERMISSION_GRANTED
                 val writeAccepted = grantResults[1] === PackageManager.PERMISSION_GRANTED
                 val readAccepted = grantResults[2] === PackageManager.PERMISSION_GRANTED
+
                 if (locationAccepted && writeAccepted && readAccepted) {
 //                    onMapReady(map)
                 } else {
@@ -342,7 +351,7 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
     }
 
     override fun onMarkerClick(marker: Marker?): Boolean {
-        Toast.makeText(this, marker?.title, Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, marker?.title, Toast.LENGTH_SHORT).show();
         val intent = Intent(this, VideoActivity::class.java).putExtra("VideoPath", marker?.title)
         startActivity(intent)
         return true
