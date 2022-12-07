@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.appwidget.AppWidgetManager
 import android.content.Intent
+import android.content.IntentFilter
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.RemoteViews
@@ -25,7 +26,9 @@ class WidgetConfigurationActivity : AppCompatActivity() {
 
         val appWidgetManager = AppWidgetManager.getInstance(this)
 
-        val intent = Intent(this, MapActivity::class.java)
+        val intent = Intent(this, MapActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
         intent.putExtra("IS_FROM_WIDGET", true)
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, FLAG_IMMUTABLE)
         // Construct the RemoteViews object

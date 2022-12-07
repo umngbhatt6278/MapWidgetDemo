@@ -39,7 +39,9 @@ internal fun updateAppWidget(
     appWidgetManager: AppWidgetManager,
     appWidgetId: Int
 ) {
-    val intent = Intent(context, MapActivity::class.java)
+    val intent = Intent(context, MapActivity::class.java).apply {
+        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+    }
     intent.putExtra("IS_FROM_WIDGET", true)
     val pendingIntent = PendingIntent.getActivity(context, 0, intent, FLAG_IMMUTABLE)
     // Construct the RemoteViews object

@@ -15,6 +15,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -60,19 +61,24 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
     var criteria: Criteria? = null
     var bestProvider: String? = null
 
+    var currentlatitude = 0.0
+    var currentlongitude = 0.0
+
     private val wordViewModel: MarkerViewModel by viewModels {
         WordViewModelFactory((application as MainApplication).repository)
     }
 
     private val contract = registerForActivityResult(ActivityResultContracts.CaptureVideo()) {
         if (it) {
-            fetchCurrentLocation()
+            saveVideoWithLocation(currentlatitude, currentlongitude)
+        } else {
+            closeApplication()
         }
     }
 
-    private fun fetchCurrentLocation() {
-        if (checkPermission()) {
-            getCurrentLocation(this)
+    private fun closeApplication() {
+        if (intent.getBooleanExtra("IS_FROM_WIDGET", false)) {
+            finishAffinity()
         }
     }
 
@@ -81,6 +87,9 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
         val location_context = LOCATION_SERVICE
         locationManager = con.getSystemService(location_context) as LocationManager
         val providers = locationManager!!.allProviders
+
+
+
         for (provider in providers) {
             if (ActivityCompat.checkSelfPermission(
                     this,
@@ -110,6 +119,50 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
                 saveVideoWithLocation(location.latitude, location.longitude)
                 break
             }
+        }
+    }
+
+    open fun getLocation(con: Context) {
+        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val criteria = Criteria()
+        val provider = locationManager!!.getBestProvider(criteria, false)
+        if (provider != null && !provider.equals("")) {
+            if (!provider.contains("gps")) { // if gps is disabled
+                val poke = Intent()
+                poke.setClassName(
+                    "com.android.settings",
+                    "com.android.settings.widget.SettingsAppWidgetProvider"
+                )
+                poke.addCategory(Intent.CATEGORY_ALTERNATIVE)
+                poke.data = Uri.parse("3")
+                sendBroadcast(poke)
+            }
+            // Get the location from the given provider
+            var location = locationManager!!.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    this,
+                    ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return
+            }
+            locationManager!!.requestLocationUpdates(
+                LocationManager.NETWORK_PROVIDER, 500, 0f, this
+            )
+            if (location != null) onLocationChanged(location) else location =
+                locationManager!!.getLastKnownLocation(provider)
+            if (location != null) onLocationChanged(location) else Toast.makeText(
+                baseContext, "Location can't be retrieved",
+                Toast.LENGTH_SHORT
+            ).show()
+        } else {
+            Toast.makeText(
+                baseContext, "No Provider Found",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
@@ -202,7 +255,11 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
         ) {
             return
         }
-        map.isMyLocationEnabled = true
+        map.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style));
+        map.isMyLocationEnabled = false
+        map.isTrafficEnabled = false
+        map.isBuildingsEnabled = false
+        map.isIndoorEnabled = false
         val builder = LatLngBounds.Builder()
         wordViewModel.allWords.observe(this@MapActivity) { words ->
             // Update the cached copy of the words in the adapter.
@@ -211,32 +268,42 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
 
                 if (!data.isNullOrEmpty()) {
                     for (i in data.indices) {
-                        builder.include(LatLng(data[i].latitude, data[i].longitude))
+//                        builder.include(LatLng(data[i].latitude, data[i].longitude))
                         createMarker(
                             LatLng(data[i].latitude, data[i].longitude),
                             data[i].videopath,
                             "Snippet1$i"
                         )
                     }
-
-                    val bounds = builder.build()
-                    val handler = Handler()
-                    handler.postDelayed(Runnable {
-                        map.animateCamera(
-                            zoomWidth?.let { width: Int ->
-                                zoomHeight?.let { height ->
-                                    zoomPadding?.let { padding ->
-                                        CameraUpdateFactory.newLatLngBounds(
-                                            bounds,
-                                            width,
-                                            height,
-                                            padding.toInt()
-                                        )
-                                    }
-                                }
-                            }
+                    map.animateCamera(
+                        CameraUpdateFactory.newLatLngZoom(
+                            LatLng(
+                                data[0].latitude,
+                                data[0].longitude
+                            ), 20f
                         )
-                    }, 500)
+                    )
+
+                    /* map.animateCamera()
+
+                     val bounds = builder.build()
+                     val handler = Handler()
+                     handler.postDelayed(Runnable {
+                         map.animateCamera(
+                             zoomWidth?.let { width: Int ->
+                                 zoomHeight?.let { height ->
+                                     zoomPadding?.let { padding ->
+                                         CameraUpdateFactory.newLatLngBounds(
+                                             bounds,
+                                             width,
+                                             height,
+                                             padding.toInt()
+                                         )
+                                     }
+                                 }
+                             }
+                         )
+                     }, 500)*/
                 }
             }
         }
@@ -252,19 +319,19 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
         snippet: String?
     ): Marker? {
 
-        val height = 100
-        val width = 100
-        val bitmapdraw = resources.getDrawable(R.drawable.ic_pin) as BitmapDrawable
-        val b = bitmapdraw.bitmap
-        val smallMarker = Bitmap.createScaledBitmap(b, width, height, false)
+        /*  val height = 100
+          val width = 100
+          val bitmapdraw = resources.getDrawable(R.drawable.ic_pin) as BitmapDrawable
+          val b = bitmapdraw.bitmap
+          val smallMarker = Bitmap.createScaledBitmap(b, width, height, false)*/
 
         return map.addMarker(
             MarkerOptions()
-                .icon(BitmapDescriptorFactory.fromBitmap(smallMarker))
+//                .icon(BitmapDescriptorFactory.fromBitmap(smallMarker))
                 .position(latlang)
-                .anchor(0.5f, 0.5f)
+//                .anchor(0.5f, 0.5f)
                 .title(title)
-                .snippet(snippet)
+//                .snippet(snippet)
         )
     }
 
@@ -344,9 +411,11 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
 
     override fun onLocationChanged(location: Location) {
         val latLng = LatLng(location.latitude, location.longitude)
-        val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10f)
-//        map.animateCamera(cameraUpdate)
         Log.d("mytag", "onLocationChanged ==> " + latLng.toString())
+
+        currentlatitude = location.latitude
+        currentlongitude = location.longitude
+
         locationManager?.removeUpdates(this);
     }
 
@@ -359,6 +428,9 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
     override fun onResume() {
         super.onResume()
         Log.e(TAG, "onCreate() --> ${intent.getBooleanExtra("IS_FROM_WIDGET", false)}")
+
+        getLocation(this)
+
 
         if (!isVideoStarted && intent.getBooleanExtra("IS_FROM_WIDGET", false)) {
             createFileUri()?.let {
