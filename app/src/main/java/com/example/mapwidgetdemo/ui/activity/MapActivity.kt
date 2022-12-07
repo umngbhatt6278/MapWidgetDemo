@@ -6,13 +6,10 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
 import android.location.*
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
@@ -28,7 +25,6 @@ import com.example.mapwidgetdemo.ui.activity.database.WordViewModelFactory
 import com.example.mapwidgetdemo.ui.activity.database.model.MarkerModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -81,47 +77,6 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
             finishAffinity()
         }
     }
-
-    open fun getCurrentLocation(con: Context) {
-        Log.d("Find Location", "in find_location")
-        val location_context = LOCATION_SERVICE
-        locationManager = con.getSystemService(location_context) as LocationManager
-        val providers = locationManager!!.allProviders
-
-
-
-        for (provider in providers) {
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                    this,
-                    ACCESS_COARSE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                return
-            }
-            locationManager?.requestLocationUpdates(provider, MIN_TIME, MIN_DISTANCE,
-                object : LocationListener {
-                    override fun onLocationChanged(location: Location) {
-
-                    }
-
-                    override fun onStatusChanged(
-                        provider: String?, status: Int,
-                        extras: Bundle?
-                    ) {
-                    }
-                })
-            val location = locationManager!!.getLastKnownLocation(provider!!)
-            if (location != null) {
-                Log.d("Find Location", "in find_location" + location.latitude + location.longitude)
-                saveVideoWithLocation(location.latitude, location.longitude)
-                break
-            }
-        }
-    }
-
     open fun getLocation(con: Context) {
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val criteria = Criteria()
@@ -182,18 +137,6 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
 
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult) {
-                locationResult ?: return
-                if (locationResult.locations.isNotEmpty()) {
-                    for (location in locationResult.locations) {
-//                        saveVideoWithLocation(location.latitude, location.longitude)
-                    }
-                }
-            }
-        }
-
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         if (!checkPermission()) {
@@ -212,7 +155,6 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
                         this
                     )
                     mapFragment.getMapAsync(this)
-//                    find_Location(this)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -265,10 +207,8 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
             // Update the cached copy of the words in the adapter.
             words.let {
                 val data = it
-
                 if (!data.isNullOrEmpty()) {
                     for (i in data.indices) {
-//                        builder.include(LatLng(data[i].latitude, data[i].longitude))
                         createMarker(
                             LatLng(data[i].latitude, data[i].longitude),
                             data[i].videopath,
@@ -283,27 +223,6 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
                             ), 20f
                         )
                     )
-
-                    /* map.animateCamera()
-
-                     val bounds = builder.build()
-                     val handler = Handler()
-                     handler.postDelayed(Runnable {
-                         map.animateCamera(
-                             zoomWidth?.let { width: Int ->
-                                 zoomHeight?.let { height ->
-                                     zoomPadding?.let { padding ->
-                                         CameraUpdateFactory.newLatLngBounds(
-                                             bounds,
-                                             width,
-                                             height,
-                                             padding.toInt()
-                                         )
-                                     }
-                                 }
-                             }
-                         )
-                     }, 500)*/
                 }
             }
         }
@@ -318,20 +237,10 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
         title: String?,
         snippet: String?
     ): Marker? {
-
-        /*  val height = 100
-          val width = 100
-          val bitmapdraw = resources.getDrawable(R.drawable.ic_pin) as BitmapDrawable
-          val b = bitmapdraw.bitmap
-          val smallMarker = Bitmap.createScaledBitmap(b, width, height, false)*/
-
         return map.addMarker(
             MarkerOptions()
-//                .icon(BitmapDescriptorFactory.fromBitmap(smallMarker))
                 .position(latlang)
-//                .anchor(0.5f, 0.5f)
                 .title(title)
-//                .snippet(snippet)
         )
     }
 
@@ -411,7 +320,7 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
 
     override fun onLocationChanged(location: Location) {
         val latLng = LatLng(location.latitude, location.longitude)
-        Log.d("mytag", "onLocationChanged ==> " + latLng.toString())
+        Log.d("mytag", "onLocationChanged ==> $latLng")
 
         currentlatitude = location.latitude
         currentlongitude = location.longitude
