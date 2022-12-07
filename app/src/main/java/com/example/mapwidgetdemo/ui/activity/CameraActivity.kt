@@ -11,11 +11,11 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.provider.Settings
 import android.util.Log
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -27,6 +27,8 @@ import com.example.mapwidgetdemo.databinding.ActivityCameraBinding
 import com.example.mapwidgetdemo.ui.activity.database.MarkerViewModel
 import com.example.mapwidgetdemo.ui.activity.database.WordViewModelFactory
 import com.example.mapwidgetdemo.ui.activity.database.model.MarkerModel
+import com.example.mapwidgetdemo.ui.activity.location.LocationUtil
+import com.example.mapwidgetdemo.ui.activity.location.LocationViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -40,6 +42,11 @@ class CameraActivity : BaseActivity() {
     private val minTime: Long = 10000
     private val minDistance = 10f
 
+
+    private lateinit var locationViewModel: LocationViewModel
+    private var isGPSEnabled = false
+
+
     private val wordViewModel: MarkerViewModel by viewModels {
         WordViewModelFactory((application as MainApplication).repository)
     }
@@ -48,64 +55,98 @@ class CameraActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         mBinding = ActivityCameraBinding.inflate(layoutInflater)
         setContentView(mBinding.root)
-        getLocation()
-        mBinding.ivStop.setOnClickListener{
+        mBinding.ivStop.setOnClickListener {
             recording?.stop()
             finish()
         }
 
+        locationViewModel = LocationViewModel(application)
+        LocationUtil(this).turnGPSOn(object : LocationUtil.OnLocationOnListener {
+            override fun locationStatus(isLocationOn: Boolean) {
+                this@CameraActivity.isGPSEnabled = isLocationOn
+            }
+        })
+
+        //        getLocation()
+
+        startCamera()
+    }
+
+    private fun observeLocationUpdates() {
+        locationViewModel.getLocationData.observe(this) {
+            Log.d("location", "observeLocationUpdates lat/lon ==> ${it.latitude} ${it.longitude}")
+            currentLatitude = it.latitude
+            currentLongitude = it.longitude
+            mBinding.txtLatLong.text = "${"Current Lat/Long"} : $currentLatitude,$currentLongitude"
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        startLocationUpdates()
+    }
+
+
+    private fun startLocationUpdates() {
+        when {
+            !isGPSEnabled -> { //
+                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                startActivity(intent)
+            }
+
+            checkPermission() -> {
+                observeLocationUpdates()
+            }
+            else -> {
+                requestPermission()
+            }
+        }
     }
 
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
-        cameraProviderFuture.addListener({
-            // Used to bind the lifecycle of cameras to the lifecycle owner
+        cameraProviderFuture.addListener({ // Used to bind the lifecycle of cameras to the lifecycle owner
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
             // Preview
-            val preview = Preview.Builder()
-                .build()
-                .also {
-                    it.setSurfaceProvider(mBinding.surfaceView.surfaceProvider)
-                }
+            val preview = Preview.Builder().build().also {
+                it.setSurfaceProvider(mBinding.surfaceView.surfaceProvider)
+            }
 
-            val recorder = Recorder.Builder()
-                .setQualitySelector(QualitySelector.from(Quality.HIGHEST))
-                .build()
+            val recorder =
+                Recorder.Builder().setQualitySelector(QualitySelector.from(Quality.HIGHEST)).build()
             val videoCapture = VideoCapture.withOutput(recorder)
 
             // Select back camera as a default
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
-            try {
-                // Unbind use cases before rebinding
+            try { // Unbind use cases before rebinding
                 cameraProvider.unbindAll()
 
                 // Bind use cases to camera
-                cameraProvider
-                    .bindToLifecycle(this, cameraSelector, preview, videoCapture)
+                cameraProvider.bindToLifecycle(this, cameraSelector, preview, videoCapture)
 
                 captureVideo(videoCapture)
-            } catch(exc: Exception) {
+            } catch (exc: Exception) {
                 Log.e("TAG", "Use case binding failed", exc)
             }
 
         }, ContextCompat.getMainExecutor(this))
     }
+
     private fun captureVideo(videoCapture: VideoCapture<Recorder>) {
 
         val curRecording = recording
-        if (curRecording != null) {
-            // Stop the current recording session.
+        if (curRecording != null) { // Stop the current recording session.
             curRecording.stop()
             recording = null
             return
         }
 
         // create and start a new recording session
-        val name = SimpleDateFormat("dd_mm_yyyy_hh_mm_ss", Locale.US)
-            .format(System.currentTimeMillis())
+        val name =
+            SimpleDateFormat("dd_mm_yyyy_hh_mm_ss", Locale.US).format(System.currentTimeMillis())
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, name)
             put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
@@ -114,51 +155,43 @@ class CameraActivity : BaseActivity() {
             }
         }
 
-        val mediaStoreOutputOptions = MediaStoreOutputOptions
-            .Builder(contentResolver, MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
-            .setContentValues(contentValues)
-            .build()
-        recording = videoCapture.output
-            .prepareRecording(this, mediaStoreOutputOptions)
-            .apply {
-                if (PermissionChecker.checkSelfPermission(this@CameraActivity,
-                        Manifest.permission.RECORD_AUDIO) ==
-                    PermissionChecker.PERMISSION_GRANTED)
-                {
-                    withAudioEnabled()
-                }
+        val mediaStoreOutputOptions =
+            MediaStoreOutputOptions.Builder(contentResolver, MediaStore.Video.Media.EXTERNAL_CONTENT_URI).setContentValues(contentValues).build()
+        recording = videoCapture.output.prepareRecording(this, mediaStoreOutputOptions).apply {
+            if (PermissionChecker.checkSelfPermission(
+                    this@CameraActivity, Manifest.permission.RECORD_AUDIO
+                ) == PermissionChecker.PERMISSION_GRANTED
+            ) {
+                withAudioEnabled()
             }
-            .start(ContextCompat.getMainExecutor(this)) { recordEvent ->
-                when(recordEvent) {
-                    is VideoRecordEvent.Start -> {
-                        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                        Toast.makeText(baseContext, "Recording started", Toast.LENGTH_SHORT)
-                            .show()
-                    }
-                    is VideoRecordEvent.Finalize -> {
-                        if (!recordEvent.hasError()) {
-                            val msg = "Video Saved to" +
-                                    "${recordEvent.outputResults.outputUri}"
-                            Log.e("TAG", msg)
-                            saveVideoWithLocation(currentLatitude, currentLongitude, recordEvent.outputResults.outputUri)
-                        } else {
-                            recording?.close()
-                            recording = null
-                            Log.e("TAG", "Video capture ends with error: " +
-                                    "${recordEvent.cause?.localizedMessage}")
-                        }
-                    }
-                    else -> {}
+        }.start(ContextCompat.getMainExecutor(this)) { recordEvent ->
+            when (recordEvent) {
+                is VideoRecordEvent.Start -> {
+                    window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    Toast.makeText(baseContext, "Recording started", Toast.LENGTH_SHORT).show()
                 }
+                is VideoRecordEvent.Finalize -> {
+                    if (!recordEvent.hasError()) {
+                        val msg = "Video Saved to" + "${recordEvent.outputResults.outputUri}"
+                        Log.e("TAG", msg)
+                        saveVideoWithLocation(currentLatitude, currentLongitude, recordEvent.outputResults.outputUri)
+                    } else {
+                        recording?.close()
+                        recording = null
+                        Log.e(
+                            "TAG", "Video capture ends with error: " + "${recordEvent.cause?.localizedMessage}"
+                        )
+                    }
+                }
+                else -> {}
             }
+        }
     }
 
-    private fun saveVideoWithLocation(latitude: Double, longitude: Double, videoUri:Uri) {
+    private fun saveVideoWithLocation(latitude: Double, longitude: Double, videoUri: Uri) {
         wordViewModel.insert(
             MarkerModel(
-                latitude = latitude,
-                longitude = longitude,
-                videopath = videoUri.toString()
+                latitude = latitude, longitude = longitude, videopath = videoUri.toString()
             )
         )
         Toast.makeText(this, "Recording Saved", Toast.LENGTH_SHORT).show()
@@ -171,26 +204,23 @@ class CameraActivity : BaseActivity() {
             if (!provider.contains("gps")) { // if gps is disabled
                 val poke = Intent()
                 poke.setClassName(
-                    "com.android.settings",
-                    "com.android.settings.widget.SettingsAppWidgetProvider"
+                    "com.android.settings", "com.android.settings.widget.SettingsAppWidgetProvider"
                 )
                 poke.addCategory(Intent.CATEGORY_ALTERNATIVE)
                 poke.data = Uri.parse("3")
                 sendBroadcast(poke)
-            }
-            // Get the location from the given provider
+            } // Get the location from the given provider
             if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_FINE_LOCATION
+                    this, Manifest.permission.ACCESS_FINE_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
+                    this, Manifest.permission.ACCESS_COARSE_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
                 requestPermission()
-            }else{
+            } else {
                 locationManager!!.requestLocationUpdates(
-                    LocationManager.NETWORK_PROVIDER, minTime, minDistance, locationListener)
+                    LocationManager.NETWORK_PROVIDER, minTime, minDistance, locationListener
+                )
             }
         }
     }
@@ -198,7 +228,10 @@ class CameraActivity : BaseActivity() {
     private val locationListener = LocationListener {
         currentLatitude = it.latitude
         currentLongitude = it.longitude
-        startCamera()
+
+        //        Toast.makeText(this, "updated lat/lon ==> $currentLatitude $currentLongitude", Toast.LENGTH_SHORT).show();
+
+        //        startCamera()
     }
 
     override fun onPause() {
@@ -206,14 +239,11 @@ class CameraActivity : BaseActivity() {
         locationManager?.removeUpdates(locationListener)
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_LOCATION_PERMISSION && grantResults.isNotEmpty()){
-            getLocation()
+        if (requestCode == REQUEST_LOCATION_PERMISSION && grantResults.isNotEmpty()) { //            getLocation()
+            isGPSEnabled = true
+            startLocationUpdates()
         }
     }
 }

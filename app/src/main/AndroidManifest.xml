@@ -103,7 +103,7 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <service android:name=".ui.activity.LocationService"
+        <service android:name=".ui.activity.location.LocationService"
             android:enabled="true"
             android:exported="true"/>
     </application>

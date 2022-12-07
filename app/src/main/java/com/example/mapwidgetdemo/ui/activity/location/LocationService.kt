@@ -1,4 +1,4 @@
-package com.example.mapwidgetdemo.ui.activity
+package com.example.mapwidgetdemo.ui.activity.location
 
 import android.app.Service
 import android.content.Context

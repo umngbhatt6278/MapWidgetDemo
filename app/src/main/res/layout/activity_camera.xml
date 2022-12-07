@@ -7,6 +7,8 @@
     android:layout_height="match_parent"
     tools:context=".ui.activity.CameraActivity">
 
+
+
     <androidx.camera.view.PreviewView
         android:id="@+id/surface_view"
         android:layout_width="match_parent"
@@ -28,5 +30,18 @@
         android:tint="@android:color/holo_red_dark"
         android:background="@drawable/round_with_white_bg"
         android:src="@drawable/ic_round_stop_24"/>
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtLatLong"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:text="34.5455646,55.5646465"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:layout_margin="5dp"
+        android:textSize="14sp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
