@@ -2,139 +2,42 @@ package com.example.mapwidgetdemo.ui.activity
 
 import android.Manifest.permission.*
 import android.app.AlertDialog
-import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.*
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
-import android.util.Log
-import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import com.example.mapwidgetdemo.R
 import com.example.mapwidgetdemo.ui.activity.database.MarkerViewModel
 import com.example.mapwidgetdemo.ui.activity.database.WordViewModelFactory
-import com.example.mapwidgetdemo.ui.activity.database.model.MarkerModel
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
 
 
-open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener,
+open class MapActivity : AppCompatActivity(), OnMapReadyCallback,
     GoogleMap.OnMarkerClickListener {
 
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var locationCallback: LocationCallback
-    lateinit var videoUri: Uri
-    private lateinit var locationRequest: LocationRequest
-
     private lateinit var map: GoogleMap
-    private val TAG = "mytag"
     private val REQUEST_LOCATION_PERMISSION = 1
-    private var locationManager: LocationManager? = null
     var zoomWidth: Int? = null
     var zoomHeight: Int? = null
     var zoomPadding: Double? = null
-    private val MIN_TIME: Long = 10000
-    private val MIN_DISTANCE = 10f
-    private var isVideoStarted = false
-    var criteria: Criteria? = null
-    var bestProvider: String? = null
-
-    var currentlatitude = 0.0
-    var currentlongitude = 0.0
 
     private val wordViewModel: MarkerViewModel by viewModels {
         WordViewModelFactory((application as MainApplication).repository)
     }
 
-    private val contract = registerForActivityResult(ActivityResultContracts.CaptureVideo()) {
-        if (it) {
-            saveVideoWithLocation(currentlatitude, currentlongitude)
-        } else {
-            closeApplication()
-        }
-    }
-
-    private fun closeApplication() {
-        if (intent.getBooleanExtra("IS_FROM_WIDGET", false)) {
-            finishAffinity()
-        }
-    }
-    open fun getLocation(con: Context) {
-        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        val criteria = Criteria()
-        val provider = locationManager!!.getBestProvider(criteria, false)
-        if (provider != null && !provider.equals("")) {
-            if (!provider.contains("gps")) { // if gps is disabled
-                val poke = Intent()
-                poke.setClassName(
-                    "com.android.settings",
-                    "com.android.settings.widget.SettingsAppWidgetProvider"
-                )
-                poke.addCategory(Intent.CATEGORY_ALTERNATIVE)
-                poke.data = Uri.parse("3")
-                sendBroadcast(poke)
-            }
-            // Get the location from the given provider
-            var location = locationManager!!.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                    this,
-                    ACCESS_COARSE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                return
-            }
-            locationManager!!.requestLocationUpdates(
-                LocationManager.NETWORK_PROVIDER, 500, 0f, this
-            )
-            if (location != null) onLocationChanged(location) else location =
-                locationManager!!.getLastKnownLocation(provider)
-            if (location != null) onLocationChanged(location) else Toast.makeText(
-                baseContext, "Location can't be retrieved",
-                Toast.LENGTH_SHORT
-            ).show()
-        } else {
-            Toast.makeText(
-                baseContext, "No Provider Found",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-    }
-
-    private fun saveVideoWithLocation(latitude: Double, longitude: Double) {
-        wordViewModel.insert(
-            MarkerModel(
-                latitude = latitude,
-                longitude = longitude,
-                videopath = videoUri.toString()
-            )
-        )
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_map)
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
 
         val mapFragment = supportFragmentManager
@@ -142,45 +45,12 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
         if (!checkPermission()) {
             requestPermission()
         } else {
-            try {
-                locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-                if (!locationManager?.isProviderEnabled(LocationManager.GPS_PROVIDER)!!) {
-                    val myIntent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                    startActivity(myIntent)
-                } else {
-                    locationManager?.requestLocationUpdates(
-                        LocationManager.NETWORK_PROVIDER,
-                        MIN_TIME,
-                        MIN_DISTANCE,
-                        this
-                    )
-                    mapFragment.getMapAsync(this)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            mapFragment.getMapAsync(this)
             zoomWidth = resources.displayMetrics.widthPixels
             zoomHeight = resources.displayMetrics.heightPixels;
             zoomPadding = (zoomWidth!! * 0.10); // offset
 
         }
-
-
-    }
-
-    private fun checkCameraHardware(context: Context): Boolean {
-        return context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
-    }
-
-    private fun createFileUri(): Uri? {
-        val sdf = SimpleDateFormat("dd_M_yyyy_hh_mm_ss", Locale.ENGLISH)
-        val currentDate = sdf.format(Date())
-        val video = File(applicationContext.filesDir, "$currentDate.mp4")
-        return FileProvider.getUriForFile(
-            applicationContext,
-            "com.example.mapwidgetdemo.fileProvider",
-            video
-        )
     }
 
 
@@ -195,7 +65,7 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
                 ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            return
+            requestPermission()
         }
         map.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style));
         map.isMyLocationEnabled = false
@@ -255,7 +125,7 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
     }
 
     open fun requestPermission() {
-        ActivityCompat.requestPermissions(
+        requestPermissions(
             this,
             arrayOf(
                 ACCESS_FINE_LOCATION,
@@ -284,22 +154,18 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
                 if (locationAccepted && writeAccepted && readAccepted) {
 //                    onMapReady(map)
                 } else {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        if (shouldShowRequestPermissionRationale(ACCESS_FINE_LOCATION)) {
-                            showMessageOKCancel("You need to allow access to both the permissions",
-                                DialogInterface.OnClickListener { dialog, which ->
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                        requestPermissions(
-                                            arrayOf(
-                                                ACCESS_FINE_LOCATION, WRITE_EXTERNAL_STORAGE,
-                                                READ_EXTERNAL_STORAGE, CAMERA, RECORD_AUDIO
-                                            ),
-                                            REQUEST_LOCATION_PERMISSION
-                                        )
-                                    }
-                                })
-                            return
+                    if (shouldShowRequestPermissionRationale(ACCESS_FINE_LOCATION)) {
+                        showMessageOKCancel("You need to allow access to both the permissions"
+                        ) { _, _ ->
+                            requestPermissions(
+                                arrayOf(
+                                    ACCESS_FINE_LOCATION, WRITE_EXTERNAL_STORAGE,
+                                    READ_EXTERNAL_STORAGE, CAMERA, RECORD_AUDIO
+                                ),
+                                REQUEST_LOCATION_PERMISSION
+                            )
                         }
+                        return
                     }
                 }
             }
@@ -318,46 +184,9 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback, LocationListen
             .show()
     }
 
-    override fun onLocationChanged(location: Location) {
-        val latLng = LatLng(location.latitude, location.longitude)
-        Log.d("mytag", "onLocationChanged ==> $latLng")
-
-        currentlatitude = location.latitude
-        currentlongitude = location.longitude
-
-        locationManager?.removeUpdates(this);
-    }
-
     override fun onMarkerClick(marker: Marker?): Boolean {
         val intent = Intent(this, VideoActivity::class.java).putExtra("VideoPath", marker?.title)
         startActivity(intent)
         return true
-    }
-
-    override fun onResume() {
-        super.onResume()
-        Log.e(TAG, "onCreate() --> ${intent.getBooleanExtra("IS_FROM_WIDGET", false)}")
-
-        getLocation(this)
-
-
-        if (!isVideoStarted && intent.getBooleanExtra("IS_FROM_WIDGET", false)) {
-            createFileUri()?.let {
-                videoUri = it
-            }
-            if (checkCameraHardware(this)) {
-                contract.launch(videoUri)
-            }
-            isVideoStarted = true
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        stopLocationUpdates()
-    }
-
-    private fun stopLocationUpdates() {
-        fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 }

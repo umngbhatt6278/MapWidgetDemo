@@ -46,6 +46,11 @@ dependencies {
 
     // Room components
     implementation "androidx.room:room-ktx:$rootProject.roomVersion"
+    implementation 'androidx.camera:camera-core:1.1.0'
+    implementation 'androidx.camera:camera-lifecycle:1.1.0'
+    implementation "androidx.camera:camera-view:1.1.0"
+    implementation "androidx.camera:camera-camera2:1.1.0"
+    implementation 'androidx.camera:camera-video:1.1.0'
     kapt "androidx.room:room-compiler:$rootProject.roomVersion"
     androidTestImplementation "androidx.room:room-testing:$rootProject.roomVersion"
 

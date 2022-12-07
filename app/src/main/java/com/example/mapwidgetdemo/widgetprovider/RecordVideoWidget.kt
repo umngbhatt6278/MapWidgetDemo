@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
 import com.example.mapwidgetdemo.R
+import com.example.mapwidgetdemo.ui.activity.CameraActivity
 import com.example.mapwidgetdemo.ui.activity.MapActivity
 
 /**
@@ -39,7 +40,7 @@ internal fun updateAppWidget(
     appWidgetManager: AppWidgetManager,
     appWidgetId: Int
 ) {
-    val intent = Intent(context, MapActivity::class.java).apply {
+    val intent = Intent(context, CameraActivity::class.java).apply {
         flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
     }
     intent.putExtra("IS_FROM_WIDGET", true)
