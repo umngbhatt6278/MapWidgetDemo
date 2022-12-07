@@ -49,6 +49,10 @@ class CameraActivity : BaseActivity() {
         mBinding = ActivityCameraBinding.inflate(layoutInflater)
         setContentView(mBinding.root)
         getLocation()
+        mBinding.ivStop.setOnClickListener{
+            recording?.stop()
+            finish()
+        }
 
     }
 
@@ -158,13 +162,6 @@ class CameraActivity : BaseActivity() {
             )
         )
         Toast.makeText(this, "Recording Saved", Toast.LENGTH_SHORT).show()
-    }
-
-    override fun onBackPressed() {
-        super.onBackPressed()
-        recording?.stop()
-         startActivity(Intent(this@CameraActivity, MapActivity::class.java))
-          this@CameraActivity.finish()
     }
 
     private fun getLocation() {
