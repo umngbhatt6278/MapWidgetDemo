@@ -7,10 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.app.ActivityCompat.requestPermissions
-import androidx.core.content.ContextCompat
 import com.example.mapwidgetdemo.R
 import com.example.mapwidgetdemo.ui.activity.database.MarkerViewModel
 import com.example.mapwidgetdemo.ui.activity.database.WordViewModelFactory
@@ -21,14 +18,13 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 
 
-open class MapActivity : AppCompatActivity(), OnMapReadyCallback,
+open class MapActivity : BaseActivity(), OnMapReadyCallback,
     GoogleMap.OnMarkerClickListener {
 
     private lateinit var map: GoogleMap
-    private val REQUEST_LOCATION_PERMISSION = 1
-    var zoomWidth: Int? = null
-    var zoomHeight: Int? = null
-    var zoomPadding: Double? = null
+    private var zoomWidth: Int? = null
+    private var zoomHeight: Int? = null
+    private var zoomPadding: Double? = null
 
     private val wordViewModel: MarkerViewModel by viewModels {
         WordViewModelFactory((application as MainApplication).repository)
@@ -47,8 +43,8 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback,
         } else {
             mapFragment.getMapAsync(this)
             zoomWidth = resources.displayMetrics.widthPixels
-            zoomHeight = resources.displayMetrics.heightPixels;
-            zoomPadding = (zoomWidth!! * 0.10); // offset
+            zoomHeight = resources.displayMetrics.heightPixels
+            zoomPadding = (zoomWidth!! * 0.10)// offset
 
         }
     }
@@ -67,12 +63,12 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback,
         ) {
             requestPermission()
         }
-        map.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style));
+        map.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style))
         map.isMyLocationEnabled = false
         map.isTrafficEnabled = false
         map.isBuildingsEnabled = false
         map.isIndoorEnabled = false
-        val builder = LatLngBounds.Builder()
+        LatLngBounds.Builder()
         wordViewModel.allWords.observe(this@MapActivity) { words ->
             // Update the cached copy of the words in the adapter.
             words.let {
@@ -96,8 +92,6 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback,
                 }
             }
         }
-
-
         map.setOnMarkerClickListener(this)
 
     }
@@ -114,31 +108,6 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback,
         )
     }
 
-    open fun checkPermission(): Boolean {
-        val location = ContextCompat.checkSelfPermission(applicationContext, ACCESS_FINE_LOCATION)
-        val write = ContextCompat.checkSelfPermission(applicationContext, WRITE_EXTERNAL_STORAGE)
-        val read = ContextCompat.checkSelfPermission(applicationContext, READ_EXTERNAL_STORAGE)
-        val camera = ContextCompat.checkSelfPermission(applicationContext, CAMERA)
-        val audio = ContextCompat.checkSelfPermission(applicationContext, RECORD_AUDIO)
-        return location == PackageManager.PERMISSION_GRANTED && write == PackageManager.PERMISSION_GRANTED && read == PackageManager.PERMISSION_GRANTED
-                && camera == PackageManager.PERMISSION_GRANTED && audio == PackageManager.PERMISSION_GRANTED
-    }
-
-    open fun requestPermission() {
-        requestPermissions(
-            this,
-            arrayOf(
-                ACCESS_FINE_LOCATION,
-                WRITE_EXTERNAL_STORAGE,
-                READ_EXTERNAL_STORAGE,
-                CAMERA,
-                RECORD_AUDIO
-            ),
-            REQUEST_LOCATION_PERMISSION
-        )
-    }
-
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
@@ -146,10 +115,10 @@ open class MapActivity : AppCompatActivity(), OnMapReadyCallback,
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
-            REQUEST_LOCATION_PERMISSION -> if (grantResults.size > 0) {
-                val locationAccepted = grantResults[0] === PackageManager.PERMISSION_GRANTED
-                val writeAccepted = grantResults[1] === PackageManager.PERMISSION_GRANTED
-                val readAccepted = grantResults[2] === PackageManager.PERMISSION_GRANTED
+            REQUEST_LOCATION_PERMISSION -> if (grantResults.isNotEmpty()) {
+                val locationAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED
+                val writeAccepted = grantResults[1] == PackageManager.PERMISSION_GRANTED
+                val readAccepted = grantResults[2] == PackageManager.PERMISSION_GRANTED
 
                 if (locationAccepted && writeAccepted && readAccepted) {
 //                    onMapReady(map)

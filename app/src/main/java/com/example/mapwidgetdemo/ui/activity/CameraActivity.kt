@@ -10,7 +10,6 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.PowerManager
 import android.provider.MediaStore
 import android.util.Log
 import android.view.WindowManager
@@ -32,7 +31,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
-class CameraActivity : AppCompatActivity() {
+class CameraActivity : BaseActivity() {
     private lateinit var mBinding: ActivityCameraBinding
     private var recording: Recording? = null
     private var currentLatitude: Double = 0.0
@@ -136,8 +135,6 @@ class CameraActivity : AppCompatActivity() {
                         if (!recordEvent.hasError()) {
                             val msg = "Video Saved to" +
                                     "${recordEvent.outputResults.outputUri}"
-                            Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT)
-                                .show()
                             Log.e("TAG", msg)
                             saveVideoWithLocation(currentLatitude, currentLongitude, recordEvent.outputResults.outputUri)
                         } else {
@@ -160,7 +157,7 @@ class CameraActivity : AppCompatActivity() {
                 videopath = videoUri.toString()
             )
         )
-        Toast.makeText(this, "Recording Saved with location", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Recording Saved", Toast.LENGTH_SHORT).show()
     }
 
     override fun onBackPressed() {
@@ -193,22 +190,33 @@ class CameraActivity : AppCompatActivity() {
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                return
+                requestPermission()
+            }else{
+                locationManager!!.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER, minTime, minDistance, locationListener)
             }
-            locationManager!!.requestLocationUpdates(
-                LocationManager.NETWORK_PROVIDER, minTime, minDistance, locationListener)
         }
     }
 
     private val locationListener = LocationListener {
         currentLatitude = it.latitude
         currentLongitude = it.longitude
-        Toast.makeText(this, "Location --> $currentLatitude, $currentLongitude", Toast.LENGTH_SHORT).show();
         startCamera()
     }
 
     override fun onPause() {
         super.onPause()
         locationManager?.removeUpdates(locationListener)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_LOCATION_PERMISSION && grantResults.isNotEmpty()){
+            getLocation()
+        }
     }
 }
