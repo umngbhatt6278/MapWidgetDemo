@@ -26,7 +26,7 @@ class WidgetConfigurationActivity : AppCompatActivity() {
 
         val appWidgetManager = AppWidgetManager.getInstance(this)
 
-        val intent = Intent(this, MapActivity::class.java).apply {
+        val intent = Intent(this, CameraActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
         intent.putExtra("IS_FROM_WIDGET", true)
