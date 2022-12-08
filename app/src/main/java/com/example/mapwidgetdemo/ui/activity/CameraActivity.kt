@@ -5,6 +5,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Criteria
 import android.location.LocationListener
 import android.location.LocationManager
 import android.net.Uri
@@ -67,8 +68,7 @@ class CameraActivity : BaseActivity() {
             }
         })
 
-        //        getLocation()
-
+//        getLocation()
         startCamera()
     }
 
@@ -199,7 +199,16 @@ class CameraActivity : BaseActivity() {
 
     private fun getLocation() {
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        val providers = locationManager!!.allProviders
+
+        val criteria = Criteria()
+        criteria.accuracy = Criteria.ACCURACY_FINE
+        criteria.isAltitudeRequired = true
+        criteria.isBearingRequired = true
+        criteria.isCostAllowed = true
+        criteria.verticalAccuracy = Criteria.ACCURACY_HIGH
+        criteria.horizontalAccuracy = Criteria.ACCURACY_HIGH
+
+        val providers = locationManager!!.getProviders(criteria, true)
         for (provider in providers) {
             if (!provider.contains("gps")) { // if gps is disabled
                 val poke = Intent()
@@ -230,7 +239,6 @@ class CameraActivity : BaseActivity() {
         currentLongitude = it.longitude
 
         //        Toast.makeText(this, "updated lat/lon ==> $currentLatitude $currentLongitude", Toast.LENGTH_SHORT).show();
-
         //        startCamera()
     }
 

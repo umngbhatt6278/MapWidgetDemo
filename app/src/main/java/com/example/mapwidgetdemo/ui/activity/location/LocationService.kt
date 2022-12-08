@@ -136,8 +136,8 @@ class LocationService : Service() {
         private val PACKAGE_NAME =
             "com.google.android.gms.location.sample.locationupdatesforegroundservice"
 
-        val ACTION_BROADCAST: String = PACKAGE_NAME + ".broadcast"
+        val ACTION_BROADCAST: String = "$PACKAGE_NAME.broadcast"
 
-        val EXTRA_LOCATION: String = PACKAGE_NAME + ".location"
+        val EXTRA_LOCATION: String = "$PACKAGE_NAME.location"
     }
 }
