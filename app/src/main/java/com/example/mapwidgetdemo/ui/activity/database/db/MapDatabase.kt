@@ -12,7 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 // Annotates class to be a Room Database with a table (entity) of the Word class
-@Database(entities = [MarkerModel::class], version = 1, exportSchema = false)
+@Database(entities = [MarkerModel::class], version = 2, exportSchema = false)
 abstract class MapDatabase : RoomDatabase() {
 
     abstract fun markerDao(): MarkerDao

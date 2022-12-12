@@ -35,8 +35,10 @@
         android:theme="@style/Theme.MapWidgetDemo"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
+
+
         <activity
-            android:name=".MapPinActivity"
+            android:name=".ui.activity.MapPinActivity"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"

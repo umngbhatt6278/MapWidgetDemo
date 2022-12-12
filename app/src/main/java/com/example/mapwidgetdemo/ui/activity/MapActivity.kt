@@ -5,7 +5,10 @@ import android.app.AlertDialog
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.Cursor
+import android.net.Uri
 import android.os.Bundle
+import android.provider.OpenableColumns
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
@@ -54,7 +57,15 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
             zoomPadding = (zoomWidth!! * 0.10) // offset
 
         }
+
+        binding.btnpins.setOnClickListener {
+            val intent = Intent(this, MapPinActivity::class.java)
+            startActivity(intent)
+        }
+
     }
+
+
 
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -145,8 +156,7 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
         return true
     }
 
-    override fun onMapLongClick(marker: LatLng?) {
-//        Toast.makeText(this, "${marker?.latitude} ${marker?.longitude}", Toast.LENGTH_SHORT).show()
+    override fun onMapLongClick(marker: LatLng?) { //        Toast.makeText(this, "${marker?.latitude} ${marker?.longitude}", Toast.LENGTH_SHORT).show()
         val snackbar = Snackbar.make(
             binding.mainlayout, "Latitude:${marker?.latitude} Longitude:${marker?.longitude}", Snackbar.LENGTH_LONG
         )

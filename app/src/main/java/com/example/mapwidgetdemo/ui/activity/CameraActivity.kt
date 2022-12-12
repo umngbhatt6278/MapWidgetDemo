@@ -5,6 +5,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.Cursor
 import android.location.Criteria
 import android.location.LocationListener
 import android.location.LocationManager
@@ -12,6 +13,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.provider.Settings
 import android.util.Log
 import android.view.WindowManager
@@ -189,10 +191,32 @@ class CameraActivity : BaseActivity() {
     private fun saveVideoWithLocation(latitude: Double, longitude: Double, videoUri: Uri) {
         wordViewModel.insert(
             MarkerModel(
-                latitude = latitude, longitude = longitude, videopath = videoUri.toString()
+                latitude = latitude, longitude = longitude, videopath = videoUri.toString(), videoname = getFileName(Uri.parse(videoUri.toString()))!!
             )
         )
         Toast.makeText(this, "Recording Saved", Toast.LENGTH_SHORT).show()
+    }
+
+    fun getFileName(uri: Uri): String? {
+        var result: String? = null
+        if (uri.getScheme().equals("content")) {
+            val cursor: Cursor? = contentResolver?.query(uri, null, null, null, null)
+            try {
+                if (cursor != null && cursor.moveToFirst()) {
+                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                }
+            } finally {
+                cursor?.close()
+            }
+        }
+        if (result == null) {
+            result = uri.getPath()
+            val cut = result?.lastIndexOf('/')
+            if (cut != -1) {
+                result = result?.substring(cut!! + 1)
+            }
+        }
+        return result
     }
 
     private fun getLocation() {
@@ -235,9 +259,6 @@ class CameraActivity : BaseActivity() {
     private val locationListener = LocationListener {
         currentLatitude = it.latitude
         currentLongitude = it.longitude
-
-//        Toast.makeText(this, "updated lat/lon ==> $currentLatitude $currentLongitude", Toast.LENGTH_SHORT).show();
-
         mBinding.txtLatLong.text = "${"Current Lat/Long"} : $currentLatitude,$currentLongitude"
         startCamera()
     }

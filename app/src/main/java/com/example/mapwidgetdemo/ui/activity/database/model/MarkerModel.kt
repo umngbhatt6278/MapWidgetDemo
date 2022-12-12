@@ -12,5 +12,6 @@ class MarkerModel(
     @ColumnInfo(name = "latitude") val latitude: Double,
     @ColumnInfo(name = "longitude") val longitude: Double,
     @ColumnInfo(name = "videopath") val videopath: String,
+    @ColumnInfo(name = "videoname") val videoname: String,
 )
 
