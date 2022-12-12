@@ -72,6 +72,7 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
         map.isTrafficEnabled = false
         map.isBuildingsEnabled = true
         map.isIndoorEnabled = true
+
         map.uiSettings.setAllGesturesEnabled(true)
         LatLngBounds.Builder()
         wordViewModel.allWords.observe(this@MapActivity) { words -> // Update the cached copy of the words in the adapter.
@@ -87,9 +88,10 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
                         CameraUpdateFactory.newLatLngZoom(
                             LatLng(
                                 data[0].latitude, data[0].longitude
-                            ), 20f
+                            ), 17f
                         )
                     )
+
                 }
             }
         }

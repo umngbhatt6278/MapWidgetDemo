@@ -9,7 +9,6 @@ import android.content.Intent
 import android.widget.RemoteViews
 import com.example.mapwidgetdemo.R
 import com.example.mapwidgetdemo.ui.activity.CameraActivity
-import com.example.mapwidgetdemo.ui.activity.MapActivity
 
 /**
  * Implementation of App Widget functionality.

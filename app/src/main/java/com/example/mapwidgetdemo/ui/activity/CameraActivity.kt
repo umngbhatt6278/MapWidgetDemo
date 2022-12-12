@@ -68,8 +68,7 @@ class CameraActivity : BaseActivity() {
             }
         })
 
-//        getLocation()
-        startCamera()
+        getLocation() //        startCamera()
     }
 
     private fun observeLocationUpdates() {
@@ -82,8 +81,7 @@ class CameraActivity : BaseActivity() {
     }
 
     override fun onStart() {
-        super.onStart()
-        startLocationUpdates()
+        super.onStart() //        startLocationUpdates()
     }
 
 
@@ -238,8 +236,10 @@ class CameraActivity : BaseActivity() {
         currentLatitude = it.latitude
         currentLongitude = it.longitude
 
-        //        Toast.makeText(this, "updated lat/lon ==> $currentLatitude $currentLongitude", Toast.LENGTH_SHORT).show();
-        //        startCamera()
+
+
+        Toast.makeText(this, "updated lat/lon ==> $currentLatitude $currentLongitude", Toast.LENGTH_SHORT).show();
+        startCamera()
     }
 
     override fun onPause() {
@@ -249,9 +249,11 @@ class CameraActivity : BaseActivity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_LOCATION_PERMISSION && grantResults.isNotEmpty()) { //            getLocation()
-            isGPSEnabled = true
-            startLocationUpdates()
+
+        if (requestCode == REQUEST_LOCATION_PERMISSION && grantResults.isNotEmpty()) {
+            getLocation()
+        //            isGPSEnabled = true
+            //            startLocationUpdates()
         }
     }
 }
