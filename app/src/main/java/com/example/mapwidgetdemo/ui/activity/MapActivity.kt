@@ -59,7 +59,7 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
 
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
-        map.uiSettings.isMapToolbarEnabled = false
+        map.uiSettings.isMapToolbarEnabled = true
         if (ActivityCompat.checkSelfPermission(
                 this, ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
@@ -73,8 +73,11 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
         map.isBuildingsEnabled = true
         map.isIndoorEnabled = true
 
+        map.uiSettings.isCompassEnabled = true
+
         map.uiSettings.setAllGesturesEnabled(true)
         LatLngBounds.Builder()
+
         wordViewModel.allWords.observe(this@MapActivity) { words -> // Update the cached copy of the words in the adapter.
             words.let {
                 val data = it

@@ -236,9 +236,9 @@ class CameraActivity : BaseActivity() {
         currentLatitude = it.latitude
         currentLongitude = it.longitude
 
+//        Toast.makeText(this, "updated lat/lon ==> $currentLatitude $currentLongitude", Toast.LENGTH_SHORT).show();
 
-
-        Toast.makeText(this, "updated lat/lon ==> $currentLatitude $currentLongitude", Toast.LENGTH_SHORT).show();
+        mBinding.txtLatLong.text = "${"Current Lat/Long"} : $currentLatitude,$currentLongitude"
         startCamera()
     }
 
