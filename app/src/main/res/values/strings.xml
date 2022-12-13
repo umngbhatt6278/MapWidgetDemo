@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MapWidgetDemo</string>
+    <string name="app_name">Travel MeMories</string>
     <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyDV2_xy58r15K6TskZy4KWMuhUDVq67jqM</string>
     <string name="title_activity_maps">Wander</string>
     <string name="normal_map">Normal Map</string>
@@ -20,6 +20,6 @@
 
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
-    <string name="see_all_location">See All Location</string>
-    <string name="back_to_map"><u>Back To Map</u></string>
+    <string name="see_all_location">View All</string>
+    <string name="back_to_map"><b>Video List</b></string>
 </resources>

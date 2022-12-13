@@ -56,7 +56,7 @@ class MapPinActivity : BaseActivity() {
 
         }
 
-        binding.txtBackToMap.setOnClickListener {
+        binding.imgBack.setOnClickListener {
             finish()
         }
     }

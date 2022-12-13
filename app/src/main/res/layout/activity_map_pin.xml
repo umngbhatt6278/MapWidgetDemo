@@ -7,17 +7,43 @@
     tools:context=".ui.activity.MapPinActivity">
 
 
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardBack"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:layout_margin="10dp"
+        android:padding="5dp"
+        app:cardElevation="5dp"
+        app:cardCornerRadius="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/imgBack"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_gravity="center"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_baseline_keyboard_arrow_left_24"/>
+
+    </androidx.cardview.widget.CardView>
+
+
+
     <androidx.appcompat.widget.AppCompatTextView
         android:tag="backToMap"
         android:id="@+id/txtBackToMap"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp"
         android:text="@string/back_to_map"
-        android:textColor="@android:color/holo_blue_light"
-        android:textSize="14sp"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        android:gravity="center"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="@id/cardBack"
+        app:layout_constraintBottom_toBottomOf="@id/cardBack"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recPins"
@@ -25,7 +51,8 @@
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/txtBackToMap"
+        app:layout_constraintTop_toBottomOf="@id/cardBack"
+        android:layout_marginTop="10dp"
         tools:listitem="@layout/row_pins" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

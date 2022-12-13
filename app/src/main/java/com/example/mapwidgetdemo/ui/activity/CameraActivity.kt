@@ -178,9 +178,7 @@ class CameraActivity : BaseActivity() {
                     } else {
                         recording?.close()
                         recording = null
-                        Log.e(
-                            "TAG", "Video capture ends with error: " + "${recordEvent.cause?.localizedMessage}"
-                        )
+                        Log.e("TAG", "Video capture ends with error: " + "${recordEvent.cause?.localizedMessage}")
                     }
                 }
                 else -> {}

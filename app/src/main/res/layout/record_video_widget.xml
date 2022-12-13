@@ -11,5 +11,5 @@
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:layout_margin="8dp"
-        android:src="@drawable/ic_video"/>
+        android:src="@drawable/ic_pin"/>
 </RelativeLayout>
