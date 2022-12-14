@@ -8,7 +8,7 @@ import com.example.mapwidgetdemo.ui.activity.database.db.MapDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 
-class MainApplication : Application() {
+open class MainApplication : Application() {
 
     init {
         instance = this

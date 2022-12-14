@@ -41,6 +41,7 @@
             >
 
             <TextView
+                android:visibility="invisible"
                 android:id="@+id/modeInfo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -51,6 +52,7 @@
                 android:textColor="@color/settingsBarColor" />
 
             <TextView
+                android:visibility="invisible"
                 android:id="@+id/resInfo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -59,6 +61,7 @@
         </LinearLayout>
 
         <ImageButton
+            android:visibility="invisible"
             android:id="@+id/settings"
             android:layout_width="wrap_content"
             android:layout_height="35dp"
@@ -75,6 +78,7 @@
     </LinearLayout>
 
     <LinearLayout
+        android:visibility="invisible"
         android:id="@+id/instantSettingsParent"
         android:layout_width="@dimen/instantSettingWidth"
         android:layout_height="@dimen/instantSettingHeight"

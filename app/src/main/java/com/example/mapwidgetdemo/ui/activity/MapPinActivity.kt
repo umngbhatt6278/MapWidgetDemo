@@ -48,6 +48,7 @@ class MapPinActivity : BaseActivity() {
         wordViewModel.allWords.observe(this@MapPinActivity) { words -> // Update the cached copy of the words in the adapter.
             words.let {
                 val data = it
+                datalist = ArrayList()
                 if (!data.isNullOrEmpty()) {
                     datalist.addAll(data)
                 }

@@ -3,6 +3,7 @@ package com.example.mapwidgetdemo.custom_camera;
 import android.app.Application;
 
 import com.example.mapwidgetdemo.custom_camera.constants.Constants;
+import com.example.mapwidgetdemo.ui.activity.MainApplication;
 
 import java.io.Serializable;
 
@@ -10,7 +11,7 @@ import java.io.Serializable;
  * Created by koushick on 10-Nov-17.
  */
 
-public class ControlVisbilityPreference extends Application implements Serializable{
+public class ControlVisbilityPreference extends MainApplication implements Serializable{
 
     private boolean hideControl;
     private int mediaSelectedPosition;

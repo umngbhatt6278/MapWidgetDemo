@@ -36,6 +36,7 @@
         android:weightSum="1">
 
         <SeekBar
+            android:visibility="invisible"
             android:id="@+id/zoomBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -87,6 +88,7 @@
                 android:src="@drawable/camera_record_start" />
 
             <ImageButton
+                android:visibility="invisible"
                 android:id="@+id/photoMode"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -98,6 +100,7 @@
                 android:src="@drawable/photo_mode" />
 
             <FrameLayout
+                android:visibility="invisible"
                 android:id="@+id/thumbnailParent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
