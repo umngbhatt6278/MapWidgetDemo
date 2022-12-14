@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.RemoteViews
 import com.example.mapwidgetdemo.R
+import com.example.mapwidgetdemo.custom_camera.CameraActivity
 import com.example.mapwidgetdemo.widgetprovider.updateAppWidget
 
 class WidgetConfigurationActivity : AppCompatActivity() {

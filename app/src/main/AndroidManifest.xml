@@ -22,6 +22,13 @@
     <uses-feature android:name="android.hardware.location.gps" />
     <uses-feature android:name="android.hardware.wifi" />
 
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+    <uses-feature
+        android:name="android.hardware.camera2"
+        android:required="false" />
+
     <application
         android:name=".ui.activity.MainApplication"
         android:allowBackup="true"
@@ -45,7 +52,7 @@
                 android:value="" />
         </activity>
         <activity
-            android:name=".ui.activity.CameraActivity"
+            android:name=".custom_camera.CameraActivity"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"

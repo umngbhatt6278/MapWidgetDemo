@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/frameMedia"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/settingsBarColor">
+
+    <ImageView
+        android:id="@+id/noImage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/mediaControlColor"
+        android:contentDescription="@string/noImage"
+        android:src="@drawable/ic_no_media"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/noImageText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginBottom="30dp"
+        android:gravity="center"
+        android:text="@string/NO_IMAGE"
+        android:textColor="@color/noImageTextColor"
+        android:textSize="@dimen/noImageTextSize"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/gridHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:weightSum="1">
+
+            <TextView
+                android:id="@+id/mediaCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/fcGalleryTextLeftMargin"
+                android:layout_marginTop="@dimen/fcGalleryTextTopAndBottomMargin"
+                android:layout_marginBottom="@dimen/fcGalleryTextTopAndBottomMargin"
+                android:layout_weight=".7"
+                android:textColor="@color/turqoise" />
+
+            <TextView
+                android:id="@+id/mediaSource"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/fcGalleryTextLeftMargin"
+                android:layout_marginTop="@dimen/fcGalleryTextTopAndBottomMargin"
+                android:layout_marginEnd="@dimen/fcGalleryTextEndMargin"
+                android:layout_marginBottom="@dimen/fcGalleryTextTopAndBottomMargin"
+                android:layout_weight=".3"
+                android:gravity="end"
+                android:text="@string/mediaSource"
+                android:textColor="@color/turqoise" />
+
+            <ImageView
+                android:id="@+id/mediaSourceImage"
+                android:layout_width="@dimen/mediaSourceImageWidth"
+                android:layout_height="@dimen/mediaSourceImageHeight"
+                android:layout_marginEnd="10dp"
+                android:layout_weight=".7"
+                android:contentDescription="@string/mediaSourceContentDescription"
+                app:srcCompat="@drawable/phone" />
+        </LinearLayout>
+
+        <GridView
+            android:id="@+id/mediaGrid"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:gravity="center|fill"
+            android:horizontalSpacing="4px"
+            android:numColumns="3"
+            android:stretchMode="columnWidth"
+            android:verticalSpacing="4px" />
+    </LinearLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/videoCapture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="@dimen/fabBottomAndEndMargin"
+        android:layout_marginBottom="@dimen/fabBottomAndEndMargin"
+        android:clickable="true"
+        android:contentDescription="@string/videoMode"
+        android:cropToPadding="false"
+        android:elevation="@dimen/fabElevation"
+        android:focusable="true"
+        android:scaleType="center"
+        android:src="@drawable/video_mode"
+        app:borderWidth="0dp"
+        app:fabCustomSize="@dimen/fabCustomDimension"
+        app:maxImageSize="@dimen/fabVideoDimension" />
+
+    <ProgressBar
+        android:id="@+id/openMediaProgress"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/turqoise"
+        android:progressTint="@color/turqoise"
+        android:visibility="gone" />
+</FrameLayout>
