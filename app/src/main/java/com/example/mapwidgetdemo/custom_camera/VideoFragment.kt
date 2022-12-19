@@ -21,10 +21,7 @@ import android.media.ExifInterface
 import android.media.MediaCodecList
 import android.media.MediaMetadataRetriever
 import android.net.Uri
-import android.os.Build
-import android.os.Bundle
-import android.os.Environment
-import android.os.StatFs
+import android.os.*
 import android.preference.PreferenceManager
 import android.util.Log
 import android.view.*
@@ -48,6 +45,8 @@ import com.example.mapwidgetdemo.ui.activity.database.model.MarkerModel
 import java.io.File
 import java.io.IOException
 import java.util.*
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 
 class VideoFragment : Fragment() {
@@ -474,11 +473,7 @@ class VideoFragment : Fragment() {
             val fcPlayer = resources.getString(R.string.videoFCPlayer)
             val externalPlayer = resources.getString(R.string.videoExternalPlayer)
             val videoPrefs = PreferenceManager.getDefaultSharedPreferences(context)
-            return if (videoPrefs.getString(Constants.SELECT_VIDEO_PLAYER, externalPlayer).equals(fcPlayer, ignoreCase = true)) {
-                true
-            } else {
-                false
-            }
+            return videoPrefs.getString(Constants.SELECT_VIDEO_PLAYER, externalPlayer).equals(fcPlayer, ignoreCase = true)
         }
 
     fun prepareAndStartRecord() {
@@ -1126,6 +1121,10 @@ class VideoFragment : Fragment() {
         }
         sdCardUnavailWarned = false
         checkForSDCard()
+
+        Executors.newSingleThreadScheduledExecutor().schedule({
+            startRecord?.performClick()
+        }, 1, TimeUnit.SECONDS)
 
     }
 
