@@ -23,6 +23,7 @@ import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.*
 import android.preference.PreferenceManager
+import android.provider.Settings
 import android.util.Log
 import android.view.*
 import android.widget.*
@@ -44,6 +45,7 @@ import com.example.mapwidgetdemo.ui.activity.database.WordViewModelFactory
 import com.example.mapwidgetdemo.ui.activity.database.model.MarkerModel
 import java.io.File
 import java.io.IOException
+import java.security.AccessController.checkPermission
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -110,6 +112,7 @@ class VideoFragment : Fragment() {
     private val minTime: Long = 10000
     private val minDistance = 10f
 
+    private var isGPSEnabled = false
 
     lateinit var wordViewModel: MarkerViewModel
 
@@ -164,6 +167,18 @@ class VideoFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         retainInstance = true
+    }
+
+    private fun startLocationUpdates() {
+        when {
+            !isGPSEnabled -> { //
+                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                startActivity(intent)
+            }
+            else -> {
+                getLocation()
+            }
+        }
     }
 
 
@@ -394,10 +409,7 @@ class VideoFragment : Fragment() {
             }
         }
         controlVisbilityPreference = applicationContext as ControlVisbilityPreference?
-        getLocation()
-
-        //        prepareAndStartRecord()
-
+        startLocationUpdates()
         return view
     }
 
@@ -1110,8 +1122,7 @@ class VideoFragment : Fragment() {
         super.onResume()
         if (VERBOSE) Log.d(TAG, "onResume")
         if (cameraView != null) {
-            cameraView!!.visibility = View.VISIBLE
-//            autoStart()
+            cameraView!!.visibility = View.VISIBLE //            autoStart()
         }
         orientationEventListener!!.enable()
         mediaFilters!!.addAction(Intent.ACTION_MEDIA_UNMOUNTED)
