@@ -8,7 +8,6 @@ import android.appwidget.AppWidgetManager
 import android.content.*
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
-import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Typeface
@@ -32,7 +31,6 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import com.example.mapwidgetdemo.R
 import com.example.mapwidgetdemo.custom_camera.constants.Constants
-import com.example.mapwidgetdemo.custom_camera.data.MediaTableConstants
 import com.example.mapwidgetdemo.custom_camera.util.GLUtil
 import com.example.mapwidgetdemo.custom_camera.util.MediaUtil
 import com.example.mapwidgetdemo.custom_camera.util.SDCardUtil
@@ -1122,9 +1120,11 @@ class VideoFragment : Fragment() {
         sdCardUnavailWarned = false
         checkForSDCard()
 
-        Executors.newSingleThreadScheduledExecutor().schedule({
+
+        var handler=Handler(Looper.myLooper()!!)
+        handler.postDelayed(Runnable { kotlin.run {
             startRecord?.performClick()
-        }, 1, TimeUnit.SECONDS)
+        } },500)
 
     }
 
