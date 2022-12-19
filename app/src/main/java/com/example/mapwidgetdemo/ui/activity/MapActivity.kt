@@ -5,11 +5,7 @@ import android.app.AlertDialog
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.database.Cursor
-import android.net.Uri
 import android.os.Bundle
-import android.provider.OpenableColumns
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
 import com.example.mapwidgetdemo.R
@@ -87,22 +83,24 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
         map.uiSettings.isCompassEnabled = true
 
         map.uiSettings.setAllGesturesEnabled(true)
-        LatLngBounds.Builder()
+//        LatLngBounds.Builder()
 
+        val builder = LatLngBounds.Builder()
+
+        val bounds = builder.build()
         wordViewModel.allWords.observe(this@MapActivity) { words -> // Update the cached copy of the words in the adapter.
             words.let {
                 val data = it
                 if (!data.isNullOrEmpty()) {
                     for (i in data.indices) {
+                        builder.include(LatLng(data[i].latitude, data[i].longitude))
                         createMarker(
                             LatLng(data[i].latitude, data[i].longitude), data[i].videopath, LatLng(data[i].latitude, data[i].longitude).toString()
                         )
                     }
                     map.animateCamera(
-                        CameraUpdateFactory.newLatLngZoom(
-                            LatLng(
-                                data[0].latitude, data[0].longitude
-                            ), 17f
+                        CameraUpdateFactory.newLatLngBounds(
+                            bounds, zoomWidth!!,zoomHeight!!, zoomPadding!!.toInt()
                         )
                     )
 

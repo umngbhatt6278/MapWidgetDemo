@@ -183,8 +183,7 @@ class VideoFragment : Fragment() {
 
 
     private fun getLocation() {
-        locationManager =
-            requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        locationManager = requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
         val criteria = Criteria()
         criteria.accuracy = Criteria.ACCURACY_FINE
@@ -218,6 +217,11 @@ class VideoFragment : Fragment() {
                 )
             }
         }
+
+        var handler=Handler(Looper.myLooper()!!)
+        handler.postDelayed(Runnable { kotlin.run {
+            startRecord?.performClick()
+        } },500)
     }
 
     private val locationListener = LocationListener {
@@ -1132,11 +1136,6 @@ class VideoFragment : Fragment() {
         }
         sdCardUnavailWarned = false
         checkForSDCard()
-
-        Executors.newSingleThreadScheduledExecutor().schedule({
-            startRecord?.performClick()
-        }, 1, TimeUnit.SECONDS)
-
     }
 
     override fun onDestroy() {
