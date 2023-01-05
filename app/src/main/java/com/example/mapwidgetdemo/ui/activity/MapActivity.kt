@@ -59,6 +59,11 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
             startActivity(intent)
         }
 
+        binding.btnsync.setOnClickListener {
+            val intent = Intent(this, LoginActivity::class.java)
+            startActivity(intent)
+        }
+
     }
 
 
@@ -87,7 +92,8 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
 
         val builder = LatLngBounds.Builder()
 
-        val bounds = builder.build()
+
+
         wordViewModel.allWords.observe(this@MapActivity) { words -> // Update the cached copy of the words in the adapter.
             words.let {
                 val data = it
@@ -98,6 +104,9 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
                             LatLng(data[i].latitude, data[i].longitude), data[i].videopath, LatLng(data[i].latitude, data[i].longitude).toString()
                         )
                     }
+
+                    val bounds = builder.build()
+
                     map.animateCamera(
                         CameraUpdateFactory.newLatLngBounds(
                             bounds, zoomWidth!!,zoomHeight!!, zoomPadding!!.toInt()

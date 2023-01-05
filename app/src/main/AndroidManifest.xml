@@ -42,8 +42,13 @@
         android:theme="@style/Theme.MapWidgetDemo"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
-
-
+        <activity
+            android:name=".ui.activity.LoginActivity"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
         <activity
             android:name=".ui.activity.MapPinActivity"
             android:exported="false">

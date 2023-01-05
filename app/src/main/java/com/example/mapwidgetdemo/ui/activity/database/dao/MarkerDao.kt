@@ -1,6 +1,5 @@
 package com.example.mapwidgetdemo.ui.activity.database.dao
 
-import androidx.lifecycle.MutableLiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -15,8 +14,8 @@ interface MarkerDao {
     fun getallMarkers(): Flow<List<MarkerModel>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insert(word: MarkerModel)
+    fun insert(word: MarkerModel)
 
     @Query("DELETE FROM markers")
-    suspend fun deleteAll()
+    fun deleteAll()
 }

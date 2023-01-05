@@ -24,7 +24,6 @@
     <string name="back_to_map"><b>Video List</b></string>
 
 
-
     <!--//Custom Camera Strings File FLip Cam-->
 
     <string name="title">No Permission</string>
@@ -326,4 +325,17 @@
     <string name="mediaInfoDateFormat">dd MMMM yyyy HH:mm:ss</string>
     //Nokia 7.1 model
     <string name="nokia71">Nokia 7.1</string>
+    <string name="welcome_to_travelmemories">Welcome to TravelMemories</string>
+    <string name="str_email">Email</string>
+    <string name="str_password">Password</string>
+    <string name="str_login">Login</string>
+    <string name="str_forgot_password"><u>Forgot password?</u></string>
+
+
+    <string name="serverError">Server Error</string>
+    <string name="noInternet">No internet available</string>
+    <string name="enter_email">Please Enter Email Address</string>
+    <string name="error_email_empty">Please Enter Email Address</string>
+    <string name="error_email_invalid">Please Enter Valid Email Address</string>
+    <string name="error_password_empty">Please Enter Password</string>
 </resources>

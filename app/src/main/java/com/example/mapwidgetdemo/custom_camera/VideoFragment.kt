@@ -8,7 +8,6 @@ import android.appwidget.AppWidgetManager
 import android.content.*
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
-import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Typeface
@@ -33,7 +32,6 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import com.example.mapwidgetdemo.R
 import com.example.mapwidgetdemo.custom_camera.constants.Constants
-import com.example.mapwidgetdemo.custom_camera.data.MediaTableConstants
 import com.example.mapwidgetdemo.custom_camera.util.GLUtil
 import com.example.mapwidgetdemo.custom_camera.util.MediaUtil
 import com.example.mapwidgetdemo.custom_camera.util.SDCardUtil
@@ -45,10 +43,7 @@ import com.example.mapwidgetdemo.ui.activity.database.WordViewModelFactory
 import com.example.mapwidgetdemo.ui.activity.database.model.MarkerModel
 import java.io.File
 import java.io.IOException
-import java.security.AccessController.checkPermission
 import java.util.*
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
 
 class VideoFragment : Fragment() {
@@ -170,6 +165,10 @@ class VideoFragment : Fragment() {
     }
 
     private fun startLocationUpdates() {
+
+        locationManager = requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        isGPSEnabled = locationManager?.isProviderEnabled(LocationManager.GPS_PROVIDER)!!
+
         when {
             !isGPSEnabled -> { //
                 val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
@@ -184,7 +183,6 @@ class VideoFragment : Fragment() {
 
     private fun getLocation() {
         locationManager = requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
-
         val criteria = Criteria()
         criteria.accuracy = Criteria.ACCURACY_FINE
         criteria.isAltitudeRequired = true
@@ -413,7 +411,6 @@ class VideoFragment : Fragment() {
             }
         }
         controlVisbilityPreference = applicationContext as ControlVisbilityPreference?
-        startLocationUpdates()
         return view
     }
 
@@ -1136,6 +1133,7 @@ class VideoFragment : Fragment() {
         }
         sdCardUnavailWarned = false
         checkForSDCard()
+        startLocationUpdates()
     }
 
     override fun onDestroy() {

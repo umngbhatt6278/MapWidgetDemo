@@ -4,11 +4,26 @@ import android.Manifest
 import android.app.ActivityManager
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Bundle
+import android.os.PersistableBundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.mapwidgetdemo.utils.ConnectionLiveData
+import com.example.mapwidgetdemo.utils.isConnectedToInternet
+import com.example.mapwidgetdemo.viewmodel.LoginViewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 open class BaseActivity: AppCompatActivity(){
+
+    private var connectionLiveData: ConnectionLiveData? = null
+    val loginViewModel: LoginViewModel by viewModel()
+
+    override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
+        super.onCreate(savedInstanceState, persistentState)
+        loginViewModel.isNetworkAvailable.value = isConnectedToInternet()
+        connectionLiveData = ConnectionLiveData(this)
+    }
 
     fun checkPermission(): Boolean {
         val location = ContextCompat.checkSelfPermission(applicationContext,
