@@ -2,7 +2,9 @@ package com.example.mapwidgetdemo.ui.activity
 
 import android.app.Application
 import android.content.Context
+import android.content.SharedPreferences
 import android.os.StrictMode
+import android.preference.PreferenceManager
 import com.example.mapwidgetdemo.di.appModule
 import com.example.mapwidgetdemo.ui.activity.database.MarkerRepository
 import com.example.mapwidgetdemo.ui.activity.database.db.MapDatabase
@@ -21,6 +23,12 @@ open class MainApplication : Application() {
     companion object {
         private var instance: MainApplication? = null
 
+
+        var applicationPreference: SharedPreferences? = null
+        var applicationPreferenceEditor: SharedPreferences.Editor? = null
+        var context: Context? = null
+
+
         fun applicationContext(): Context {
             return instance!!.applicationContext
         }
@@ -38,6 +46,11 @@ open class MainApplication : Application() {
             androidContext(this@MainApplication)
             modules(appModule)
         }
+
+
+
+        applicationPreference = getSharedPreferences("TravelMeMories", MODE_PRIVATE)
+        applicationPreferenceEditor = applicationPreference!!.edit()
     }
 
     private fun setupStrictPolicy() {

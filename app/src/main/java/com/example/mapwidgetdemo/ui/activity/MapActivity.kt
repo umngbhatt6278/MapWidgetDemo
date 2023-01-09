@@ -1,17 +1,26 @@
 package com.example.mapwidgetdemo.ui.activity
 
 import android.Manifest.permission.*
-import android.app.AlertDialog
-import android.content.DialogInterface
-import android.content.Intent
+import android.app.*
+import android.content.*
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.mapwidgetdemo.R
 import com.example.mapwidgetdemo.databinding.ActivityMapBinding
+import com.example.mapwidgetdemo.services.ForegroundService
 import com.example.mapwidgetdemo.ui.activity.database.MarkerViewModel
 import com.example.mapwidgetdemo.ui.activity.database.WordViewModelFactory
+import com.example.mapwidgetdemo.utils.AllEvents
+import com.google.android.exoplayer2.offline.DownloadService.startForeground
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -21,6 +30,8 @@ import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
+import java.io.File
 
 
 open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener,
@@ -60,13 +71,11 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
         }
 
         binding.btnsync.setOnClickListener {
-            val intent = Intent(this, LoginActivity::class.java)
+            val intent = Intent(this, SettingsActivity::class.java)
             startActivity(intent)
         }
 
     }
-
-
 
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -87,12 +96,9 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
 
         map.uiSettings.isCompassEnabled = true
 
-        map.uiSettings.setAllGesturesEnabled(true)
-//        LatLngBounds.Builder()
+        map.uiSettings.setAllGesturesEnabled(true) //        LatLngBounds.Builder()
 
         val builder = LatLngBounds.Builder()
-
-
 
         wordViewModel.allWords.observe(this@MapActivity) { words -> // Update the cached copy of the words in the adapter.
             words.let {
@@ -109,15 +115,98 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
 
                     map.animateCamera(
                         CameraUpdateFactory.newLatLngBounds(
-                            bounds, zoomWidth!!,zoomHeight!!, zoomPadding!!.toInt()
+                            bounds, zoomWidth!!, zoomHeight!!, zoomPadding!!.toInt()
                         )
                     )
 
                 }
             }
         }
+
+        startService()
+
         map.setOnMarkerClickListener(this)
         map.setOnMapLongClickListener(this)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopService()
+    }
+
+    open fun startService() {
+        val serviceIntent = Intent(this, ForegroundService::class.java)
+        serviceIntent.putExtra("inputExtra", "Foreground Service Example in Android") //        ContextCompat.startForegroundService(this, serviceIntent)
+        bindService(serviceIntent, playerServiceConnection, Context.BIND_AUTO_CREATE)
+
+    }
+
+    private val playerServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            val binder = service as ForegroundService.LocalBinder
+
+            Log.d("service", "Service connected")
+            createNotificationChannel()
+            val notificationIntent = Intent(this@MapActivity, MapActivity::class.java)
+            val pendingIntent = PendingIntent.getActivity(
+                this@MapActivity, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE
+            )
+            val notification: Notification =
+                NotificationCompat.Builder(this@MapActivity, ForegroundService.CHANNEL_ID).setContentTitle("Foreground Service").setContentText("Sevice Starteed").setSmallIcon(R.drawable.ic_pin).setContentIntent(pendingIntent).build()
+            binder.service.startForeground(1, notification)
+
+           /* wordViewModel.allWords.observe(this@MapActivity) { words -> // Update the cached copy of the words in the adapter.
+                words.let {
+                    val data = it
+                    if (!data.isNullOrEmpty()) {
+                        for (i in data.indices) {
+                            loginViewModel.saveVideo(data[i].latitude, data[i].longitude, data[i].videoname, data[i].videopath)
+                        }
+                    }
+
+                    lifecycleScope.launch {
+                        loginViewModel.allEventsFlow.collect { event ->
+                            when (event) {
+                                is AllEvents.SuccessBool -> {
+                                    when (event.code) {
+                                        1 -> {
+                                            Log.d("mytag", "Video Uploaded Sucessfully")
+                                        }
+                                    }
+                                }
+                                else -> {
+                                    val asString = event.asString(this@MapActivity)
+                                    if (asString !is Unit && asString.toString().isNotBlank()) {
+                                        Toast.makeText(
+                                            this@MapActivity, asString.toString(), Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }*/
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+
+        }
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val serviceChannel = NotificationChannel(
+                ForegroundService.CHANNEL_ID, "Foreground Service Channel", NotificationManager.IMPORTANCE_DEFAULT
+            )
+            val manager = getSystemService(NotificationManager::class.java)
+            manager.createNotificationChannel(serviceChannel)
+        }
+    }
+
+    open fun stopService() {
+        val serviceIntent = Intent(this, ForegroundService::class.java)
+        stopService(serviceIntent)
     }
 
     protected open fun createMarker(latlang: LatLng, title: String?, snippet: String?): Marker? {

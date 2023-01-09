@@ -2,11 +2,10 @@ package com.example.mapwidgetdemo.apicall
 
 import com.app.ktorcrud.apicall.ApiServiceClass
 import com.example.mapwidgetdemo.request.LoginRequestModel
+import com.example.mapwidgetdemo.request.RegisterRequestModel
+import com.example.mapwidgetdemo.request.SaveVideoModel
 import com.example.mapwidgetdemo.request.UpdateUserRequest
-import com.example.mapwidgetdemo.response.CommonErrorResponse
-import com.example.mapwidgetdemo.response.LoginResponse
-import com.example.mapwidgetdemo.response.UpdateUserResponse
-import com.example.mapwidgetdemo.response.UsersListResponse
+import com.example.mapwidgetdemo.response.*
 import com.example.mapwidgetdemo.utils.Either
 import com.example.mapwidgetdemo.utils.Failure
 import com.google.gson.Gson
@@ -28,55 +27,45 @@ class ApiServiceImpl(private val apiService: ApiService) : ApiServiceClass {
         }
     }
 
-    override suspend fun getUserList(page:Int): Either<String, UsersListResponse> {
+    override suspend fun register(loginRequestModel: RegisterRequestModel): Either<String, LoginResponse> {
         return try {
-            Either.Right(apiService.getUsers(page))
+            Either.Right(apiService.register(loginRequestModel))
         } catch (ex: Exception) {
             Either.Left(ex.errorMessage())
         }
     }
 
-    override suspend fun updateUser(page: Int, updateUserRequest: UpdateUserRequest): Either<String, UpdateUserResponse> {
+    override suspend fun saveVideo(loginRequestModel: SaveVideoModel): Either<String, SaveVidoResponse> {
         return try {
-            Either.Right(apiService.updateUsers(page,updateUserRequest))
+            Either.Right(apiService.saveVideo(loginRequestModel))
         } catch (ex: Exception) {
             Either.Left(ex.errorMessage())
         }
     }
 
-    override suspend fun deleteUser(page: Int): Either<String, JsonObject> {
-        return try {
-            Either.Right(apiService.deleteUsers(page))
-        } catch (ex: Exception) {
-            Either.Left(ex.errorMessage())
+
+    private suspend fun Exception.errorMessage() = when (this) {
+        is ResponseException -> {
+            Gson().fromJson(
+                response.readText(Charset.defaultCharset()), CommonErrorResponse::class.java
+            ).error!!
+        }
+        else -> {
+            localizedMessage!!
         }
     }
-
-    private suspend fun Exception.errorMessage() =
-        when (this) {
-            is ResponseException -> {
-                Gson().fromJson(
-                    response.readText(Charset.defaultCharset()),
-                    CommonErrorResponse::class.java
-                ).error!!
-            }
-            else -> {
-                localizedMessage!!
-            }
-        }
 }
 
 fun Exception.toCustomExceptions() = when (this) {
     is ServerResponseException -> Failure.HttpErrorInternalServerError(this)
-    is ClientRequestException ->
-        when (this.response.status.value) {
-            400 -> Failure.HttpErrorBadRequest(this)
-            401 -> Failure.HttpErrorUnauthorized(this)
-            403 -> Failure.HttpErrorForbidden(this)
-            404 -> Failure.HttpErrorNotFound(this)
-            405 -> Failure.MethodNotAllowed(this)
-            else -> Failure.HttpError(this)
-        }
+    is ClientRequestException -> when (this.response.status.value) {
+        400 -> Failure.HttpErrorBadRequest(this)
+        401 -> Failure.HttpErrorUnauthorized(this)
+        403 -> Failure.HttpErrorForbidden(this)
+        404 -> Failure.HttpErrorNotFound(this)
+        405 -> Failure.MethodNotAllowed(this)
+        else -> Failure.HttpError(this)
+    }
     is RedirectResponseException -> Failure.HttpError(this)
     else -> Failure.GenericError(this)
 }

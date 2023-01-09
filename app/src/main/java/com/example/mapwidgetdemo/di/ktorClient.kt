@@ -2,6 +2,8 @@ package com.example.mapwidgetdemo.di
 
 import android.util.Log
 import com.example.mapwidgetdemo.apicall.ApiRoutes
+import com.example.mapwidgetdemo.utils.SharedPreferenceUtils
+import com.example.mapwidgetdemo.utils.AppConstants.SharedPreferenceKeys.F_TOKEN
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
 import io.ktor.client.features.*
@@ -56,6 +58,8 @@ val ktorHttpClient = HttpClient(Android) {
     }
 
     install(DefaultRequest) {
-        header(HttpHeaders.Authorization, "Bearer")
+        header(
+            HttpHeaders.Authorization, "Bearer " + if (SharedPreferenceUtils.preferenceGetString(F_TOKEN).toString().isEmpty()) "" else SharedPreferenceUtils.preferenceGetString(F_TOKEN).toString()
+        )
     }
 }

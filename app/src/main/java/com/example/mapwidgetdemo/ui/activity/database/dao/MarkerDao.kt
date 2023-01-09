@@ -16,6 +16,6 @@ interface MarkerDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insert(word: MarkerModel)
 
-    @Query("DELETE FROM markers")
-    fun deleteAll()
+    /*@Query("DELETE FROM markers")
+    suspend fun deleteAll()*/
 }

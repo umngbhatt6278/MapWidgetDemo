@@ -328,6 +328,7 @@
     <string name="welcome_to_travelmemories">Welcome to TravelMemories</string>
     <string name="str_email">Email</string>
     <string name="str_password">Password</string>
+    <string name="str_conf_password">Confirm Password</string>
     <string name="str_login">Login</string>
     <string name="str_forgot_password"><u>Forgot password?</u></string>
 
@@ -335,7 +336,14 @@
     <string name="serverError">Server Error</string>
     <string name="noInternet">No internet available</string>
     <string name="enter_email">Please Enter Email Address</string>
+    <string name="enter_name">Please Enter Name</string>
     <string name="error_email_empty">Please Enter Email Address</string>
     <string name="error_email_invalid">Please Enter Valid Email Address</string>
     <string name="error_password_empty">Please Enter Password</string>
+    <string name="error_conf_password_empty">Please Enter Confirm Password</string>
+    <string name="error_conf_password_not_match">Confirm Password and Password Not Same</string>
+    <string name="str_title_register">Register</string>
+    <string name="str_title_name">Name</string>
+    <string name="sync">Sync</string>
+    <string name="logout">Logout</string>
 </resources>

@@ -30,6 +30,7 @@ import android.widget.SeekBar.OnSeekBarChangeListener
 import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.example.mapwidgetdemo.R
 import com.example.mapwidgetdemo.custom_camera.constants.Constants
 import com.example.mapwidgetdemo.custom_camera.util.GLUtil
@@ -41,6 +42,10 @@ import com.example.mapwidgetdemo.ui.activity.REQUEST_LOCATION_PERMISSION
 import com.example.mapwidgetdemo.ui.activity.database.MarkerViewModel
 import com.example.mapwidgetdemo.ui.activity.database.WordViewModelFactory
 import com.example.mapwidgetdemo.ui.activity.database.model.MarkerModel
+import com.example.mapwidgetdemo.utils.AllEvents
+import com.example.mapwidgetdemo.viewmodel.LoginViewModel
+import kotlinx.coroutines.launch
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 import java.io.IOException
 import java.util.*
@@ -109,8 +114,6 @@ class VideoFragment : Fragment() {
 
     private var isGPSEnabled = false
 
-    lateinit var wordViewModel: MarkerViewModel
-
 
     interface PermissionInterface {
         fun askPermission()
@@ -166,7 +169,8 @@ class VideoFragment : Fragment() {
 
     private fun startLocationUpdates() {
 
-        locationManager = requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        locationManager =
+            requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
         isGPSEnabled = locationManager?.isProviderEnabled(LocationManager.GPS_PROVIDER)!!
 
         when {
@@ -182,7 +186,8 @@ class VideoFragment : Fragment() {
 
 
     private fun getLocation() {
-        locationManager = requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        locationManager =
+            requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val criteria = Criteria()
         criteria.accuracy = Criteria.ACCURACY_FINE
         criteria.isAltitudeRequired = true
@@ -216,10 +221,12 @@ class VideoFragment : Fragment() {
             }
         }
 
-        var handler=Handler(Looper.myLooper()!!)
-        handler.postDelayed(Runnable { kotlin.run {
-            startRecord?.performClick()
-        } },500)
+        var handler = Handler(Looper.myLooper()!!)
+        handler.postDelayed(Runnable {
+            kotlin.run {
+                startRecord?.performClick()
+            }
+        }, 500)
     }
 
     private val locationListener = LocationListener {
@@ -1010,11 +1017,9 @@ class VideoFragment : Fragment() {
         wordViewModel.insert(
             MarkerModel(
                 latitude = currentLatitude, longitude = currentLongitude, videopath = cameraView!!.mediaPath.toString(), videoname = File(cameraView!!.mediaPath.toString()).name
-            )!!
-
+            )
         )
-        setCameraClose()
-        requireActivity().finishAffinity()
+
     }
 
 

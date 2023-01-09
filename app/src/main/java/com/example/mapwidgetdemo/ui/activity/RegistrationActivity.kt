@@ -5,20 +5,18 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.example.mapwidgetdemo.databinding.ActivityLoginBinding
-import com.example.mapwidgetdemo.response.LoginResponse
+import com.example.mapwidgetdemo.databinding.ActivityRegisterBinding
 import com.example.mapwidgetdemo.utils.AllEvents
-import com.example.mapwidgetdemo.utils.SharedPreferenceUtils
-import com.example.mapwidgetdemo.utils.AppConstants.SharedPreferenceKeys.F_TOKEN
-import com.example.mapwidgetdemo.utils.AppConstants.SharedPreferenceKeys.IS_GUEST
+import com.example.mapwidgetdemo.utils.DialogUtils
 import kotlinx.coroutines.launch
 
-class LoginActivity : BaseActivity() {
+class RegistrationActivity : BaseActivity() {
 
-    private lateinit var binding: ActivityLoginBinding
+    private lateinit var binding: ActivityRegisterBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityLoginBinding.inflate(layoutInflater)
+        binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         initViews()
@@ -32,31 +30,22 @@ class LoginActivity : BaseActivity() {
                     is AllEvents.SuccessBool -> {
                         when (event.code) {
                             1 -> {
-
+                                DialogUtils.hideProgressBar()
+                                startActivity(Intent(this@RegistrationActivity, LoginActivity::class.java))
+                                finish()
                             }
                         }
                     }
-                    is AllEvents.Success<*> -> {
-                        val loginresponse = event.data as LoginResponse
-                        SharedPreferenceUtils.preferencePutString(F_TOKEN, loginresponse.data.token)
-                        SharedPreferenceUtils.preferencePutBoolean(IS_GUEST, false)
-                    }
                     else -> {
-                        val asString = event.asString(this@LoginActivity)
+                        val asString = event.asString(this@RegistrationActivity)
                         if (asString !is Unit && asString.toString().isNotBlank()) {
                             Toast.makeText(
-                                this@LoginActivity, asString.toString(), Toast.LENGTH_SHORT
+                                this@RegistrationActivity, asString.toString(), Toast.LENGTH_SHORT
                             ).show()
                         }
                     }
                 }
             }
-        }
-
-
-
-        binding.txtRegister.setOnClickListener {
-            startActivity(Intent(this, RegistrationActivity::class.java))
         }
 
     }

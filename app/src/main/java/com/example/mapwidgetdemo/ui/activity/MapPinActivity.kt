@@ -2,13 +2,19 @@ package com.example.mapwidgetdemo.ui.activity
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mapwidgetdemo.databinding.ActivityMapPinBinding
 import com.example.mapwidgetdemo.ui.activity.database.MarkerViewModel
 import com.example.mapwidgetdemo.ui.activity.database.WordViewModelFactory
 import com.example.mapwidgetdemo.ui.activity.database.model.MarkerModel
+import com.example.mapwidgetdemo.utils.AllEvents
+import kotlinx.coroutines.launch
+import java.io.File
 
 class MapPinActivity : BaseActivity() {
 
@@ -60,6 +66,32 @@ class MapPinActivity : BaseActivity() {
         binding.imgBack.setOnClickListener {
             finish()
         }
+
+        /*loginViewModel.saveVideo(currentLatitude, currentLongitude, File(cameraView!!.mediaPath.toString()).name, cameraView!!.mediaPath.toString())
+
+        lifecycleScope.launch {
+            loginViewModel.allEventsFlow.collect { event ->
+                when (event) {
+                    is AllEvents.SuccessBool -> {
+                        when (event.code) {
+                            1 -> {
+                                Log.d("mytag", "Video Uploaded Sucessfully")
+                                setCameraClose()
+                                requireActivity().finishAffinity()
+                            }
+                        }
+                    }
+                    else -> {
+                        val asString = event.asString(requireActivity())
+                        if (asString !is Unit && asString.toString().isNotBlank()) {
+                            Toast.makeText(
+                                requireActivity(), asString.toString(), Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                }
+            }
+        }*/
     }
 
 
