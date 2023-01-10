@@ -11,7 +11,6 @@ class MarkerRepository(private val wordDao: MarkerDao) {
     // Observed Flow will notify the observer when the data has changed.
 
 
-
     val allWords: Flow<List<MarkerModel>> = wordDao.getallMarkers()
 
 
@@ -22,5 +21,9 @@ class MarkerRepository(private val wordDao: MarkerDao) {
 
     suspend fun insert(word: MarkerModel) {
         wordDao.insert(word)
+    }
+
+    suspend fun update(word: MarkerModel) {
+        wordDao.updateNote(word)
     }
 }

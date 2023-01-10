@@ -69,6 +69,7 @@ class LoginViewModel(private val apiServiceImpl: ApiServiceImpl) : ViewModel() {
                         loginResponse.postValue(it)
                         eventsChannel.send(AllEvents.Loading(false))
                         eventsChannel.send(AllEvents.SuccessBool(true, 1))
+                        eventsChannel.send(AllEvents.Success(it))
                     })
                 }
             }

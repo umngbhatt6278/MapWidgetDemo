@@ -1016,9 +1016,11 @@ class VideoFragment : Fragment() {
 
         wordViewModel.insert(
             MarkerModel(
-                latitude = currentLatitude, longitude = currentLongitude, videopath = cameraView!!.mediaPath.toString(), videoname = File(cameraView!!.mediaPath.toString()).name
+                latitude = currentLatitude, longitude = currentLongitude, videopath = cameraView!!.mediaPath.toString(), videoname = File(cameraView!!.mediaPath.toString()).name, isserver = false
             )
         )
+        setCameraClose()
+        requireActivity().finishAffinity()
 
     }
 

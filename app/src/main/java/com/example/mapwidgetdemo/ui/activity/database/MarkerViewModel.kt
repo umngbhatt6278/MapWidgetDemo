@@ -14,6 +14,10 @@ class MarkerViewModel(private val repository: MarkerRepository) : ViewModel() {
     fun insert(word: MarkerModel) = CoroutineScope(Dispatchers.IO).launch {
         repository.insert(word)
     }
+
+    fun update(word: MarkerModel) = CoroutineScope(Dispatchers.IO).launch {
+        repository.update(word)
+    }
 }
 
 class WordViewModelFactory(private val repository: MarkerRepository) : ViewModelProvider.Factory {

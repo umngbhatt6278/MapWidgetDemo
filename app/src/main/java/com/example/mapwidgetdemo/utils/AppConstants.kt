@@ -8,6 +8,10 @@ object AppConstants {
     object SharedPreferenceKeys {
         const val F_TOKEN = "f_token"
         const val IS_GUEST = "IS_GUEST"
+        const val NAME = "NAME"
+        const val EMAIL = "EMAIL"
+        const val IS_UPLOAD_SERVER = "IS_UPLOAD_SERVER"
+        const val IS_REMOVE_FROM_DEVICE = "IS_REMOVE_FROM_DEVICE"
     }
 
 

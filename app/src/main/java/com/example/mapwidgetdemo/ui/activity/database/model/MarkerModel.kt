@@ -13,6 +13,6 @@ class MarkerModel(
     @ColumnInfo(name = "longitude") val longitude: Double,
     @ColumnInfo(name = "videopath") val videopath: String,
     @ColumnInfo(name = "videoname") val videoname: String,
-    @ColumnInfo(name = "isserver") val isserver: Boolean = false,
+    @ColumnInfo(name = "isserver") var isserver: Boolean = false,
 )
 

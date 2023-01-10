@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.example.mapwidgetdemo.ui.activity.database.model.MarkerModel
 import kotlinx.coroutines.flow.Flow
 
@@ -15,6 +16,9 @@ interface MarkerDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insert(word: MarkerModel)
+
+    @Update
+    fun updateNote(note: MarkerModel)
 
     /*@Query("DELETE FROM markers")
     suspend fun deleteAll()*/
