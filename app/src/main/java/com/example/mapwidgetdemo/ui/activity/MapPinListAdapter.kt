@@ -1,9 +1,6 @@
 package com.example.mapwidgetdemo.ui.activity
 
 import android.content.Context
-import android.database.Cursor
-import android.net.Uri
-import android.provider.OpenableColumns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,7 +18,7 @@ class MapPinListAdapter(val mcontext: Context, myViewClickListener: MyViewCLicke
 
     RecyclerView.Adapter<ImageViewHolder?>() {
     var context: Context? = null
-    var alStoreImages: ArrayList<MarkerModel> = ArrayList()
+    var alStoreImages: ArrayList<MarkerModel?> = ArrayList()
 
     var listner: MyViewCLickedListener? = null
 
@@ -31,7 +28,7 @@ class MapPinListAdapter(val mcontext: Context, myViewClickListener: MyViewCLicke
     }
 
     override fun onBindViewHolder(@NonNull holder: ImageViewHolder, position: Int) {
-        holder.txtVideoName.text = alStoreImages!![position].videoname
+        holder.txtVideoName.text = alStoreImages!![position]?.videoname
     }
 
 
@@ -63,9 +60,9 @@ class MapPinListAdapter(val mcontext: Context, myViewClickListener: MyViewCLicke
         return ImageViewHolder(view)
     }
 
-    fun addAll(datalist: ArrayList<MarkerModel>) {
+    fun addAll(datalist: ArrayList<MarkerModel?>?) {
         alStoreImages.clear()
-        alStoreImages.addAll(datalist)
+        alStoreImages.addAll(datalist!!)
         notifyDataSetChanged()
     }
 }

@@ -1,10 +1,6 @@
 package com.example.mapwidgetdemo.ui.activity.database.dao
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import androidx.room.Update
+import androidx.room.*
 import com.example.mapwidgetdemo.ui.activity.database.model.MarkerModel
 import kotlinx.coroutines.flow.Flow
 
@@ -19,6 +15,9 @@ interface MarkerDao {
 
     @Update
     fun updateNote(note: MarkerModel)
+
+    @Delete
+    fun delete(model: MarkerModel)
 
     /*@Query("DELETE FROM markers")
     suspend fun deleteAll()*/

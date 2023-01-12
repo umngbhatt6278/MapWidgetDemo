@@ -2,6 +2,11 @@ package com.example.mapwidgetdemo.utils
 
 import com.example.mapwidgetdemo.ui.activity.MainApplication.Companion.applicationPreference
 import com.example.mapwidgetdemo.ui.activity.MainApplication.Companion.applicationPreferenceEditor
+import com.example.mapwidgetdemo.ui.activity.database.model.MarkerModel
+import com.google.common.reflect.TypeToken
+import com.google.gson.Gson
+import java.lang.reflect.Type
+import kotlin.collections.ArrayList
 
 /**
  * Application level preference work.
@@ -64,6 +69,21 @@ object SharedPreferenceUtils {
     fun preferenceRemoveKey(key: String?) {
         applicationPreferenceEditor!!.remove(key)
         applicationPreferenceEditor!!.commit()
+    }
+
+
+    fun saveArrayList(list: ArrayList<MarkerModel>, key: String?) {
+        val gson = Gson()
+        val json: String = gson.toJson(list)
+        applicationPreferenceEditor?.putString(key, json)
+        applicationPreferenceEditor?.apply()
+    }
+
+    fun getArrayList(key: String?): ArrayList<MarkerModel?>? {
+        val gson = Gson()
+        val json: String? = applicationPreference?.getString(key, null)
+        val type: Type = object : TypeToken<ArrayList<MarkerModel?>?>() {}.getType()
+        return gson.fromJson(json, type)
     }
 
 

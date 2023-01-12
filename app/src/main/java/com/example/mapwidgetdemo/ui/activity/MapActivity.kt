@@ -12,10 +12,10 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.mapwidgetdemo.R
 import com.example.mapwidgetdemo.databinding.ActivityMapBinding
+import com.example.mapwidgetdemo.response.GetVideoResponse
 import com.example.mapwidgetdemo.services.ForegroundService
 import com.example.mapwidgetdemo.ui.activity.database.MarkerViewModel
 import com.example.mapwidgetdemo.ui.activity.database.WordViewModelFactory
@@ -23,8 +23,6 @@ import com.example.mapwidgetdemo.ui.activity.database.model.MarkerModel
 import com.example.mapwidgetdemo.utils.AllEvents
 import com.example.mapwidgetdemo.utils.AppConstants
 import com.example.mapwidgetdemo.utils.SharedPreferenceUtils
-import com.google.android.exoplayer2.offline.DownloadService.startForeground
-import com.google.android.gms.common.util.SharedPreferencesUtils
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -34,8 +32,8 @@ import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
+import com.google.gson.Gson
 import kotlinx.coroutines.*
-import java.io.File
 
 
 open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener,
@@ -53,6 +51,10 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
     private val wordViewModel: MarkerViewModel by viewModels {
         WordViewModelFactory((application as MainApplication).repository)
     }
+
+
+    var mapvideodatalist: ArrayList<MarkerModel> = ArrayList()
+    val builder = LatLngBounds.Builder()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,8 +79,129 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
             startActivity(intent)
         }
 
+
+        wordViewModel.allWords.observe(this@MapActivity) { words -> // Update the cached copy of the words in the adapter.
+            uploaddatalistforserver = words as ArrayList<MarkerModel>
+        }
+
+
     }
 
+    private fun getApiData() {
+        loginViewModel.getVideosFromApi()
+
+        lifecycleScope.launch {
+            loginViewModel.allEventsFlow.collect { event ->
+                when (event) {
+                    is AllEvents.SuccessBool -> {
+                        when (event.code) {
+                            1 -> {
+                            }
+                        }
+                    }
+                    is AllEvents.Success<*> -> {
+                        val videolist = event.data as GetVideoResponse
+                        mapvideodatalist = ArrayList()
+                        if (videolist.data.videos.isNotEmpty()) {
+                            for (i in videolist.data.videos.indices) {
+                                mapvideodatalist.add(
+                                    MarkerModel(
+                                        videolist.data.videos[i].id, videolist.data.videos[i].lat, videolist.data.videos[i].long, videolist.data.videos[i].video, videolist.data.videos[i].name, true
+                                    )
+                                )
+                            }
+                            for (j in uploaddatalistforserver.indices) {
+                                if (!uploaddatalistforserver[j].isserver) {
+                                    mapvideodatalist.add(
+                                        MarkerModel(
+                                            uploaddatalistforserver[j].id, uploaddatalistforserver[j].latitude, uploaddatalistforserver[j].longitude, uploaddatalistforserver[j].videopath, uploaddatalistforserver[j].videoname, uploaddatalistforserver[j].isserver
+                                        )
+                                    )
+
+                                }
+                            }
+
+
+                            for (i in mapvideodatalist.indices) {
+                                builder.include(LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude))
+                                createMarker(
+                                    LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude), mapvideodatalist[i].videopath, LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude).toString()
+                                )
+                            }
+
+                            val bounds = builder.build()
+
+                            map.animateCamera(
+                                CameraUpdateFactory.newLatLngBounds(
+                                    bounds, zoomWidth!!, zoomHeight!!, zoomPadding!!.toInt()
+                                )
+                            )
+
+                            SharedPreferenceUtils.saveArrayList(mapvideodatalist, AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)
+
+                            Log.d("logger", "Final Map Video Size ==> " + mapvideodatalist.size)
+
+                        } else {
+                            wordViewModel.allWords.observe(this@MapActivity) { words -> // Update the cached copy of the words in the adapter.
+                                words.let {
+                                    val data = it
+                                    uploaddatalistforserver = data as ArrayList<MarkerModel>
+                                    if (!data.isNullOrEmpty()) {
+                                        for (i in data.indices) {
+                                            builder.include(LatLng(data[i].latitude, data[i].longitude))
+                                            createMarker(LatLng(data[i].latitude, data[i].longitude), data[i].videopath, LatLng(data[i].latitude, data[i].longitude).toString())
+                                            mapvideodatalist.add(
+                                                MarkerModel(
+                                                    uploaddatalistforserver[i].id, uploaddatalistforserver[i].latitude, uploaddatalistforserver[i].longitude, uploaddatalistforserver[i].videopath, uploaddatalistforserver[i].videoname, uploaddatalistforserver[i].isserver
+                                                )
+                                            )
+                                        }
+
+                                        val bounds = builder.build()
+
+                                        map.animateCamera(
+                                            CameraUpdateFactory.newLatLngBounds(
+                                                bounds, zoomWidth!!, zoomHeight!!, zoomPadding!!.toInt()
+                                            )
+                                        )
+
+
+                                        SharedPreferenceUtils.saveArrayList(mapvideodatalist, AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)
+                                        Log.d("logger", "Final Map Video Size ==> " + mapvideodatalist.size)
+                                    }
+                                }
+                            }
+                        }
+
+
+                        if (SharedPreferenceUtils.preferenceGetBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, false)) {
+                            for (i in uploaddatalistforserver.indices) {
+                                if (!uploaddatalistforserver[i].isserver) {
+                                    startService()
+                                    fireAndForgetNetworkCall()
+                                    break
+                                }
+                            }
+
+                        }
+
+
+                    }
+                    else -> {
+                        val asString = event.asString(this@MapActivity)
+                        if (asString !is Unit && asString.toString().isNotBlank()) {
+                            Toast.makeText(
+                                this@MapActivity, asString.toString(), Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    inline fun <reified T : Any> String.toKotlinObject(): T = Gson().fromJson(this, T::class.java)
 
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
@@ -100,32 +223,35 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
 
         map.uiSettings.setAllGesturesEnabled(true) //        LatLngBounds.Builder()
 
-        val builder = LatLngBounds.Builder()
 
-        wordViewModel.allWords.observe(this@MapActivity) { words -> // Update the cached copy of the words in the adapter.
-            words.let {
-                val data = it
-                uploaddatalistforserver = data as ArrayList<MarkerModel>
-                if (!data.isNullOrEmpty()) {
-                    for (i in data.indices) {
-                        builder.include(LatLng(data[i].latitude, data[i].longitude))
-                        createMarker(
-                            LatLng(data[i].latitude, data[i].longitude), data[i].videopath, LatLng(data[i].latitude, data[i].longitude).toString()
-                        )
-                    }
+        if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.IS_GUEST)) {
+            if (!SharedPreferenceUtils.preferenceGetBoolean(AppConstants.SharedPreferenceKeys.IS_GUEST, true)) {
+                getApiData()
+            } else {
+                wordViewModel.allWords.observe(this@MapActivity) { words -> // Update the cached copy of the words in the adapter.
+                    words.let {
+                        val data = it
+                        uploaddatalistforserver = data as ArrayList<MarkerModel>
+                        if (!data.isNullOrEmpty()) {
+                            for (i in data.indices) {
+                                builder.include(LatLng(data[i].latitude, data[i].longitude))
+                                createMarker(
+                                    LatLng(data[i].latitude, data[i].longitude), data[i].videopath, LatLng(data[i].latitude, data[i].longitude).toString()
+                                )
+                            }
+                            val bounds = builder.build()
+                            map.animateCamera(
+                                CameraUpdateFactory.newLatLngBounds(
+                                    bounds, zoomWidth!!, zoomHeight!!, zoomPadding!!.toInt()
+                                )
+                            )
+                        }
 
-                    val bounds = builder.build()
-
-                    map.animateCamera(
-                        CameraUpdateFactory.newLatLngBounds(
-                            bounds, zoomWidth!!, zoomHeight!!, zoomPadding!!.toInt()
-                        )
-                    )
-                }
-
-                if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER)) {
-                    if (SharedPreferenceUtils.preferenceGetBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, false)) {
-                        startService()
+                        if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER)) {
+                            if (SharedPreferenceUtils.preferenceGetBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, false)) {
+                                startService()
+                            }
+                        }
                     }
                 }
             }
@@ -164,8 +290,6 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
             val notification: Notification =
                 NotificationCompat.Builder(this@MapActivity, ForegroundService.CHANNEL_ID).setContentTitle("Foreground Service").setContentText("Sevice Starteed").setSmallIcon(R.drawable.ic_pin).setContentIntent(pendingIntent).build()
             binder.service.startForeground(1, notification)
-
-            fireAndForgetNetworkCall()
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
@@ -175,37 +299,40 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
 
     fun fireAndForgetNetworkCall() {
         Log.i("logger", "-----Async network calls without error handling-----")
-
-
         lifecycleScope.executeAsyncTask(onPreExecute = { // ...
         }, doInBackground = { // ...
             "Result" // send data to "onPostExecute"
-            Log.d("logger", "Video Uploading Sucessfully on server")
-
-            if (!uploaddatalistforserver[mcount].isserver) {
-                loginViewModel.saveVideo(
-                    uploaddatalistforserver[mcount].latitude, uploaddatalistforserver[mcount].longitude, uploaddatalistforserver[mcount].videoname, uploaddatalistforserver[mcount].videopath
-                )
-            }else{
-                mcount += 1
+            if (mcount < uploaddatalistforserver.size) {
+                if (!uploaddatalistforserver[mcount].isserver) {
+                    Log.d("logger", "Video Uploading on server" + mcount)
+                    loginViewModel.saveVideo(
+                        uploaddatalistforserver[mcount].latitude, uploaddatalistforserver[mcount].longitude, uploaddatalistforserver[mcount].videoname, uploaddatalistforserver[mcount].videopath
+                    )
+                }
             }
         }, onPostExecute = { // ... here "it" is a data returned from "doInBackground"
+            updateCount()
             lifecycleScope.launch {
                 loginViewModel.allEventsFlow.collect { event ->
                     when (event) {
                         is AllEvents.SuccessBool -> {
                             when (event.code) {
                                 1 -> {
-                                    Log.d("mytag", "Video Uploaded Sucessfully")
                                     if (mcount < uploaddatalistforserver.size) {
+                                        Log.d("logger", "Video Uploaded Sucessfully " + mcount)
                                         val memo = MarkerModel(
                                             id = uploaddatalistforserver[mcount].id, latitude = uploaddatalistforserver[mcount].latitude, longitude = uploaddatalistforserver[mcount].longitude, videopath = uploaddatalistforserver[mcount].videopath, videoname = uploaddatalistforserver[mcount].videoname, isserver = true
                                         )
-                                        wordViewModel.update(memo)
-                                        mcount += 1
-                                        fireAndForgetNetworkCall()
+                                        if (SharedPreferenceUtils.preferenceGetBoolean(AppConstants.SharedPreferenceKeys.IS_REMOVE_FROM_DEVICE, false)) {
+                                            wordViewModel.delete(memo)
+                                            Log.d("logger", "Video Deleted Sucessfully becasue remove device is on")
+                                        } else {
+                                            Log.d("logger", "Video Update Sucessfully becasue remove device is off")
+                                            wordViewModel.update(memo)
+                                        }
+                                        updateCount()
                                     } else {
-                                        Log.d("mytag", "all Video Uploaded Sucessfully")
+                                        Log.d("logger", "all Video Uploaded Sucessfully")
                                         mcount = 0
                                     }
                                 }
@@ -222,8 +349,18 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
                     }
                 }
             }
+
         })
 
+    }
+
+    private fun updateCount() {
+        if (uploaddatalistforserver.size != 0) {
+            if (uploaddatalistforserver[mcount].isserver && mcount < uploaddatalistforserver.size - 1) {
+                mcount += 1
+                fireAndForgetNetworkCall()
+            }
+        }
     }
 
     fun <R> CoroutineScope.executeAsyncTask(onPreExecute: () -> Unit, doInBackground: () -> R, onPostExecute: (R) -> Unit) =

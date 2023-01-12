@@ -11,6 +11,7 @@ import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.util.Util
 
 
@@ -39,27 +40,40 @@ class VideoActivity : AppCompatActivity() {
     }
 
 
-
-
     private fun preparePlayer() {
-        exoPlayer = ExoPlayer.Builder(this).build()
-        exoPlayer?.playWhenReady = true
-        binding.playerView.player = exoPlayer
-
         val dataSourceFactory: DataSource.Factory =
             DefaultDataSourceFactory(this, Util.getUserAgent(this, "com.example.mapwidgetdemo"))
 
+        if (!videoPath.contains("https")) {
+            exoPlayer = ExoPlayer.Builder(this).build()
+            binding.playerView.player = exoPlayer
 
-        val mediaItem = MediaItem.fromUri(Uri.parse(videoPath))
-        val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
-        exoPlayer?.apply {
-            setMediaSource(mediaSource)
-            seekTo(playbackPosition)
-            playWhenReady = playWhenReady
-            prepare()
+            val mediaItem = MediaItem.fromUri(Uri.parse(videoPath))
+            val mediaSource =
+                ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
+            exoPlayer?.apply {
+                setMediaSource(mediaSource)
+                seekTo(playbackPosition)
+                playWhenReady = playWhenReady
+                prepare()
+            }
+        } else {
+            exoPlayer = ExoPlayer.Builder(this).build()
+            binding.playerView.player = exoPlayer
+
+            val defaultHttpDataSourceFactory = DefaultHttpDataSource.Factory()
+            val mediaItem =
+                MediaItem.fromUri(videoPath)
+            val mediaSource = ProgressiveMediaSource.Factory(defaultHttpDataSourceFactory)
+                .createMediaSource(mediaItem)
+            exoPlayer?.apply {
+                setMediaSource(mediaSource)
+                seekTo(playbackPosition)
+                playWhenReady = playWhenReady
+                prepare()
+            }
         }
     }
-
 
 
     private fun releasePlayer() {

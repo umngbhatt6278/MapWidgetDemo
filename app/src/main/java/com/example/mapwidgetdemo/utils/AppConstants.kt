@@ -12,6 +12,7 @@ object AppConstants {
         const val EMAIL = "EMAIL"
         const val IS_UPLOAD_SERVER = "IS_UPLOAD_SERVER"
         const val IS_REMOVE_FROM_DEVICE = "IS_REMOVE_FROM_DEVICE"
+        const val PREF_MAP_VIDEO_LIST = "PREF_MAP_VIDEO_LIST"
     }
 
 

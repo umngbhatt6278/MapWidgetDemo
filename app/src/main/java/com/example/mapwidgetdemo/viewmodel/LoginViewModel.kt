@@ -11,6 +11,7 @@ import com.example.mapwidgetdemo.request.LoginRequestModel
 import com.example.mapwidgetdemo.request.RegisterRequestModel
 import com.example.mapwidgetdemo.request.SaveVideoModel
 import com.example.mapwidgetdemo.response.Data
+import com.example.mapwidgetdemo.response.GetVideoResponse
 import com.example.mapwidgetdemo.response.LoginResponse
 import com.example.mapwidgetdemo.response.SaveVidoResponse
 import com.example.mapwidgetdemo.utils.AllEvents
@@ -38,7 +39,9 @@ class LoginViewModel(private val apiServiceImpl: ApiServiceImpl) : ViewModel() {
     val saveVideoResponse get() = _SaveVideoResponse
 
     private val _userListResponse = MutableLiveData<ArrayList<Data>?>()
+    private val _videoListResponse = MutableLiveData<GetVideoResponse>()
     val userListResponse get() = _userListResponse
+    val videoListResponse get() = _videoListResponse
 
     fun login() {
 
@@ -127,7 +130,7 @@ class LoginViewModel(private val apiServiceImpl: ApiServiceImpl) : ViewModel() {
         viewModelScope.launch {
             when {
                 else -> {
-                    eventsChannel.send(AllEvents.Loading(true))
+                    eventsChannel.send(AllEvents.Loading(false))
                     apiServiceImpl.saveVideo(SaveVideoModel(currentLatitude.toString(), currentLongitude.toString(), name, filepath)).either({
                         eventsChannel.send(AllEvents.Loading(false))
                         eventsChannel.send(AllEvents.DynamicError(it))
@@ -140,4 +143,22 @@ class LoginViewModel(private val apiServiceImpl: ApiServiceImpl) : ViewModel() {
             }
         }
     }
+
+    fun getVideosFromApi() {
+        viewModelScope.launch {
+            when {
+                else -> {
+                    apiServiceImpl.getVideo().either({
+                        eventsChannel.send(AllEvents.DynamicError(it))
+                    }, {
+                        videoListResponse.postValue(it)
+                        eventsChannel.send(AllEvents.Loading(false))
+                        eventsChannel.send(AllEvents.SuccessBool(true, 1))
+                        eventsChannel.send(AllEvents.Success(it))
+                    })
+                }
+            }
+        }
+    }
+
 }

@@ -17,7 +17,7 @@ import io.ktor.http.*
 /**
  * Created by Priyanka.
  */
-private const val TIME_OUT = 60_000
+private const val TIME_OUT = 60_00000
 
 val ktorHttpClient = HttpClient(Android) {
 

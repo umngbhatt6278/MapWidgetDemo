@@ -43,6 +43,16 @@ class ApiServiceImpl(private val apiService: ApiService) : ApiServiceClass {
         }
     }
 
+    override suspend fun getVideo(): Either<String, GetVideoResponse> {
+        return try {
+            Either.Right(apiService.getUsers())
+        } catch (ex: Exception) {
+            Either.Left(ex.errorMessage())
+        }
+    }
+
+
+
 
     private suspend fun Exception.errorMessage() = when (this) {
         is ResponseException -> {

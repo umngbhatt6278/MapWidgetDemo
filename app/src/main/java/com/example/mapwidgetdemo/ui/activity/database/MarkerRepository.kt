@@ -26,4 +26,8 @@ class MarkerRepository(private val wordDao: MarkerDao) {
     suspend fun update(word: MarkerModel) {
         wordDao.updateNote(word)
     }
+
+    suspend fun delete(word: MarkerModel) {
+        wordDao.delete(word)
+    }
 }

@@ -3,6 +3,7 @@ package com.example.mapwidgetdemo.apicall
 import com.example.mapwidgetdemo.request.LoginRequestModel
 import com.example.mapwidgetdemo.request.RegisterRequestModel
 import com.example.mapwidgetdemo.request.SaveVideoModel
+import com.example.mapwidgetdemo.response.GetVideoResponse
 import com.example.mapwidgetdemo.response.LoginResponse
 import com.example.mapwidgetdemo.response.SaveVidoResponse
 import io.ktor.client.*
@@ -28,19 +29,22 @@ class ApiService(private val client: HttpClient) {
         body = loginRequestModel
     }
 
+    suspend fun getUsers(): GetVideoResponse = client.get {
+        url(ApiRoutes.SAVE_VIDEO)
+        header(HttpHeaders.ContentType, ContentType.Application.Json)
+    }
 
     suspend fun saveVideo(loginRequestModel: SaveVideoModel): SaveVidoResponse =
         client.submitFormWithBinaryData(url = "api/video", formData = formData {
-            append("name", "Sample 1")
+            append("name", File(loginRequestModel.filepath).name)
             append("lat", loginRequestModel.currentLatitude)
             append("long", loginRequestModel.currentLongitude)
             append("file", File(loginRequestModel.filepath).readBytes(), Headers.build {
                 append(HttpHeaders.ContentType, "multipart/form-data; boundary=boundary")
-                append(HttpHeaders.Authorization,"Bearer " + "28|i8WyBIEsdhpJYMorOifLb8GR9ri88LX9LyFdDMBB")
+                append(HttpHeaders.Authorization, "Bearer " + "28|i8WyBIEsdhpJYMorOifLb8GR9ri88LX9LyFdDMBB")
                 append(HttpHeaders.ContentDisposition, "filename=${File(loginRequestModel.filepath).name}")
             })
         })
-
 
 
 }
