@@ -6,12 +6,13 @@ import android.os.StrictMode
 import android.os.StrictMode.VmPolicy
 import androidx.appcompat.app.AppCompatActivity
 import com.example.mapwidgetdemo.databinding.ActivityVideoBinding
+import com.google.android.exoplayer2.DefaultRenderersFactory
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.util.Util
 
 
@@ -41,13 +42,12 @@ class VideoActivity : AppCompatActivity() {
 
 
     private fun preparePlayer() {
-        val dataSourceFactory: DataSource.Factory =
-            DefaultDataSourceFactory(this, Util.getUserAgent(this, "com.example.mapwidgetdemo"))
+
+        exoPlayer = ExoPlayer.Builder(this).build()
 
         if (!videoPath.contains("https")) {
-            exoPlayer = ExoPlayer.Builder(this).build()
-            binding.playerView.player = exoPlayer
-
+            val dataSourceFactory: DataSource.Factory =
+                DefaultDataSourceFactory(this, Util.getUserAgent(this, "com.example.mapwidgetdemo"))
             val mediaItem = MediaItem.fromUri(Uri.parse(videoPath))
             val mediaSource =
                 ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
@@ -58,21 +58,16 @@ class VideoActivity : AppCompatActivity() {
                 prepare()
             }
         } else {
-            exoPlayer = ExoPlayer.Builder(this).build()
-            binding.playerView.player = exoPlayer
-
-            val defaultHttpDataSourceFactory = DefaultHttpDataSource.Factory()
-            val mediaItem =
-                MediaItem.fromUri(videoPath)
-            val mediaSource = ProgressiveMediaSource.Factory(defaultHttpDataSourceFactory)
-                .createMediaSource(mediaItem)
+            val mediaItem = MediaItem.Builder().setUri(videoPath.replace("https","http")).build()
             exoPlayer?.apply {
-                setMediaSource(mediaSource)
+                setMediaItem(mediaItem)
                 seekTo(playbackPosition)
                 playWhenReady = playWhenReady
                 prepare()
             }
         }
+
+        binding.playerView.player = exoPlayer
     }
 
 

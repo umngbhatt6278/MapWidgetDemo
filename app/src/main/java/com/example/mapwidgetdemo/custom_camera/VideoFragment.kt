@@ -43,6 +43,9 @@ import com.example.mapwidgetdemo.ui.activity.database.MarkerViewModel
 import com.example.mapwidgetdemo.ui.activity.database.WordViewModelFactory
 import com.example.mapwidgetdemo.ui.activity.database.model.MarkerModel
 import com.example.mapwidgetdemo.utils.AllEvents
+import com.example.mapwidgetdemo.utils.AppConstants
+import com.example.mapwidgetdemo.utils.DialogClickInterface
+import com.example.mapwidgetdemo.utils.DialogUtils
 import com.example.mapwidgetdemo.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -51,7 +54,7 @@ import java.io.IOException
 import java.util.*
 
 
-class VideoFragment : Fragment() {
+class VideoFragment : Fragment(), DialogClickInterface {
     var zoomBar: SeekBar? = null
     var cameraView: CameraView? = null
     var switchCamera: ImageButton? = null
@@ -1008,19 +1011,10 @@ class VideoFragment : Fragment() {
     }
 
     fun addMediaToDB() {
-        val wordViewModel: MarkerViewModel by requireActivity().viewModels {
-            WordViewModelFactory((requireActivity().application as ControlVisbilityPreference).repository)
-        }
-
         Log.d(TAG, "mediapath ===> " + cameraView!!.mediaPath.toString())
-
-        wordViewModel.insert(
-            MarkerModel(
-                latitude = currentLatitude, longitude = currentLongitude, videopath = cameraView!!.mediaPath.toString(), videoname = File(cameraView!!.mediaPath.toString()).name, isserver = false
-            )
+        DialogUtils.dialogChildNameOrRewardMsg(
+            requireActivity(), getString(R.string.app_name), "Video Name", AppConstants.DialogCodes.DIALOG_CLAIM_REWARD, this
         )
-        setCameraClose()
-        requireActivity().finishAffinity()
 
     }
 
@@ -1180,6 +1174,26 @@ class VideoFragment : Fragment() {
                 fragment = VideoFragment()
             }
             return fragment
+        }
+    }
+
+    override fun onClick(code: Int, msg: String) {
+
+        val wordViewModel: MarkerViewModel by requireActivity().viewModels {
+            WordViewModelFactory((requireActivity().application as ControlVisbilityPreference).repository)
+        }
+        AppConstants.DialogCodes.apply {
+            when (code) {
+                DIALOG_CLAIM_REWARD -> {
+                    wordViewModel.insert(
+                        MarkerModel(
+                            latitude = currentLatitude, longitude = currentLongitude, videopath = cameraView!!.mediaPath.toString(), videoname = msg, isserver = false
+                        )
+                    )
+                    setCameraClose()
+                    requireActivity().finishAffinity()
+                }
+            }
         }
     }
 }

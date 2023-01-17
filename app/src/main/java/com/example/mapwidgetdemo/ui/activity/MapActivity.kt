@@ -132,8 +132,8 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
                             val bounds = builder.build()
 
                             map.animateCamera(
-                                CameraUpdateFactory.newLatLngBounds(
-                                    bounds, zoomWidth!!, zoomHeight!!, zoomPadding!!.toInt()
+                                CameraUpdateFactory.newLatLngZoom(
+                                    LatLng(mapvideodatalist[0].latitude, mapvideodatalist[0].longitude), 16f
                                 )
                             )
 
@@ -224,6 +224,12 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
         map.uiSettings.setAllGesturesEnabled(true) //        LatLngBounds.Builder()
 
 
+        getdata()
+        map.setOnMarkerClickListener(this)
+        map.setOnMapLongClickListener(this)
+    }
+
+    private fun getdata() {
         if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.IS_GUEST)) {
             if (!SharedPreferenceUtils.preferenceGetBoolean(AppConstants.SharedPreferenceKeys.IS_GUEST, true)) {
                 getApiData()
@@ -256,13 +262,12 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
                 }
             }
         }
-        map.setOnMarkerClickListener(this)
-        map.setOnMapLongClickListener(this)
     }
 
     override fun onResume() {
         super.onResume()
         Log.d("logger", "Token ==> " + SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.F_TOKEN).toString())
+        getdata()
     }
 
     override fun onDestroy() {

@@ -39,8 +39,7 @@ class MapPinActivity : BaseActivity() {
             }
         })
 
-        datalist =
-            SharedPreferenceUtils.getArrayList(AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)
+        datalist = SharedPreferenceUtils.getArrayList(AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)
 
         binding.recPins.adapter = adapter
 

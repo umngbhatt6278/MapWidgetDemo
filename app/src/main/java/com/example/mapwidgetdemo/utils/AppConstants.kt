@@ -16,4 +16,17 @@ object AppConstants {
     }
 
 
+    class DialogCodes {
+        companion object {
+            const val DIALOG_CLAIM_REWARD = 0
+            const val DIALOG_SETTING_SUB = 1
+            const val DIALOG_CONTACT_US = 2
+            const val DIALOG_SUB_TYPE = 3
+            const val DIALOG_UPDATE_CHILD_NAME = 4
+            const val DIALOG_UPDATE_REWARD_MSG = 5
+            const val DIALOG_REWARD_CLAIMED = 6
+            const val DIALOG_SIGN_OUT = 7
+        }
+    }
+
 }

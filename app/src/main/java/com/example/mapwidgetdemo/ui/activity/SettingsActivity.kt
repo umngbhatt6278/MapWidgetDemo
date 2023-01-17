@@ -6,16 +6,21 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.core.view.isVisible
+import com.example.mapwidgetdemo.R
 import com.example.mapwidgetdemo.databinding.ActivitySettingsMainBinding
 import com.example.mapwidgetdemo.ui.activity.database.MarkerViewModel
 import com.example.mapwidgetdemo.ui.activity.database.WordViewModelFactory
 import com.example.mapwidgetdemo.ui.activity.database.model.MarkerModel
 import com.example.mapwidgetdemo.utils.AppConstants
+import com.example.mapwidgetdemo.utils.AppConstants.DialogCodes.Companion.DIALOG_SIGN_OUT
+import com.example.mapwidgetdemo.utils.DialogClickInterface
+import com.example.mapwidgetdemo.utils.DialogUtils
 import com.example.mapwidgetdemo.utils.SharedPreferenceUtils
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 
-class SettingsActivity : BaseActivity() {
+class SettingsActivity : BaseActivity(), DialogClickInterface {
 
     private lateinit var binding: ActivitySettingsMainBinding
 
@@ -36,14 +41,15 @@ class SettingsActivity : BaseActivity() {
 
         binding.SwitchUpload.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked) {
-                SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, true)
-            } else {
                 if (isGuest) {
-                    val intent = Intent(this, LoginActivity::class.java)
-                    resultLauncher.launch(intent)
+                    DialogUtils.alertDialogSignOut(
+                        this, getString(R.string.app_name), getString(R.string.upload_server_msg), AppConstants.DialogCodes.DIALOG_SIGN_OUT, this@SettingsActivity
+                    )
                 } else {
                     SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, false)
                 }
+            } else {
+                SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, false)
             }
 
 
@@ -64,7 +70,26 @@ class SettingsActivity : BaseActivity() {
             startActivity(intent)
         }
 
+        binding.texLogout.setOnClickListener {
+            SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_GUEST, true)
+            SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, false)
+            SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_REMOVE_FROM_DEVICE, false)
+            SharedPreferenceUtils.preferencePutString(AppConstants.SharedPreferenceKeys.F_TOKEN, "")
+            binding.SwitchUpload.isChecked = false
 
+            wordViewModel.allWords.observe(this@SettingsActivity) { words -> // Update the cached copy of the words in the adapter.
+                words.let {
+                    val data = it
+                    removeFromServerData = data as ArrayList<MarkerModel>
+                    Log.d("logger", "when logout time ==> " + removeFromServerData.size)
+
+                    SharedPreferenceUtils.saveArrayList(removeFromServerData, AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)
+                }
+            }
+
+
+            setUserRole()
+        }
     }
 
     private fun removedatafromDevice() {
@@ -96,7 +121,7 @@ class SettingsActivity : BaseActivity() {
                 "Welcome, " + SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.NAME)
 
             binding.SwitchUpload.isChecked = !isGuest
-
+            binding.texLogout.isVisible = true
 
             if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.IS_REMOVE_FROM_DEVICE)) {
                 isremoveFromDevice =
@@ -127,7 +152,11 @@ class SettingsActivity : BaseActivity() {
             binding.SwitchRemoveFromDevice.isClickable = false
             binding.SwitchRemoveFromDevice.isChecked = false
             binding.SwitchRemoveFromDevice.isFocusable = false
+            binding.texLogout.isVisible = false
         }
+
+
+
 
         wordViewModel.allWords.observe(this@SettingsActivity) { words -> // Update the cached copy of the words in the adapter.
             words.let {
@@ -142,8 +171,25 @@ class SettingsActivity : BaseActivity() {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 val data: Intent? = result.data
+                SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, true)
                 binding.SwitchUpload.isChecked = true
                 setUserRole()
             }
         }
+
+    override fun onClick(code: Int, msg: String) {
+        AppConstants.DialogCodes.apply {
+            when (code) {
+                DIALOG_SIGN_OUT -> {
+                    if(msg == "") {
+                        val intent = Intent(this@SettingsActivity, LoginActivity::class.java)
+                        resultLauncher.launch(intent)
+                    }else{
+                        binding.SwitchUpload.isChecked = false
+                        SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, false)
+                    }
+                }
+            }
+        }
+    }
 }

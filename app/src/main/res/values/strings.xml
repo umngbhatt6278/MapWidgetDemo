@@ -346,4 +346,6 @@
     <string name="str_title_name">Name</string>
     <string name="sync">Sync</string>
     <string name="logout">Logout</string>
+    <string name="upload_server_msg">You Need To Login This Application For Uploading To Server</string>
+    <string name="title_text">Title Text</string>
 </resources>
