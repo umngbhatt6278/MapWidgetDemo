@@ -24,6 +24,9 @@ public class Constants
     public final static int RECORD_STOP_NO_SD_CARD = 11000;
     public final static int SHOW_SELFIE_TIMER = 12000;
 
+
+    public final static int RECORD_STOP_NEW = 225000;
+
     //File size for calculating memory consumed
     public final static double KILO_BYTE = 1024.0;
     public final static double MEGA_BYTE = KILO_BYTE * KILO_BYTE;

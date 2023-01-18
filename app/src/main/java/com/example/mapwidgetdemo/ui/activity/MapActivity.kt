@@ -14,6 +14,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.mapwidgetdemo.R
+import com.example.mapwidgetdemo.custom_camera.VideoFragment.Companion.TAG
 import com.example.mapwidgetdemo.databinding.ActivityMapBinding
 import com.example.mapwidgetdemo.response.GetVideoResponse
 import com.example.mapwidgetdemo.services.ForegroundService
@@ -27,13 +28,13 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.LatLngBounds
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener,
@@ -121,21 +122,41 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
                                 }
                             }
 
-
+                            var markerList: List<MarkerOptions?>
+                            markerList = ArrayList()
                             for (i in mapvideodatalist.indices) {
-                                builder.include(LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude))
+//                                builder.include(LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude))
                                 createMarker(
                                     LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude), mapvideodatalist[i].videopath, LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude).toString()
                                 )
+
+                                val vnrPoint =
+                                    BitmapDescriptorFactory.fromResource(R.drawable.ic_pin)
+                                val vnr = LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude)
+                                val vnrMarker = MarkerOptions()
+                                vnrMarker.position(vnr)
+                                vnrMarker.icon(vnrPoint)
+                                markerList.add(vnrMarker)
+                            }
+
+                            val builder = LatLngBounds.Builder()
+
+                            for (m in markerList) {
+                                builder.include(m?.position)
                             }
 
                             val bounds = builder.build()
 
-                            map.animateCamera(
-                                CameraUpdateFactory.newLatLngZoom(
-                                    LatLng(mapvideodatalist[0].latitude, mapvideodatalist[0].longitude), 16f
-                                )
-                            )
+                            val width = resources.displayMetrics.widthPixels
+                            val height = resources.displayMetrics.heightPixels
+                            val padding = (width * 0.15).toInt()
+
+                            val cu =
+                                CameraUpdateFactory.newLatLngBounds(bounds, width, height, padding);
+//                            map.moveCamera(cu)
+                            map.animateCamera(cu)
+
+//                            map.animateCamera(CameraUpdateFactory.zoomTo(10f), 2000, null)
 
                             SharedPreferenceUtils.saveArrayList(mapvideodatalist, AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)
 
@@ -159,15 +180,11 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
 
                                         val bounds = builder.build()
 
-                                        map.animateCamera(
-                                            CameraUpdateFactory.newLatLngBounds(
-                                                bounds, zoomWidth!!, zoomHeight!!, zoomPadding!!.toInt()
-                                            )
-                                        )
-
+                                        val padding = 0
+                                        map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding))
 
                                         SharedPreferenceUtils.saveArrayList(mapvideodatalist, AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)
-                                        Log.d("logger", "Final Map Video Size ==> " + mapvideodatalist.size)
+//                                        Log.d("logger", "Final Map Video Size ==> " + mapvideodatalist.size)
                                     }
                                 }
                             }
@@ -224,7 +241,9 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
         map.uiSettings.setAllGesturesEnabled(true) //        LatLngBounds.Builder()
 
 
-        getdata()
+
+
+        //        getdata()
         map.setOnMarkerClickListener(this)
         map.setOnMapLongClickListener(this)
     }
@@ -234,11 +253,13 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
             if (!SharedPreferenceUtils.preferenceGetBoolean(AppConstants.SharedPreferenceKeys.IS_GUEST, true)) {
                 getApiData()
             } else {
+                Log.d(TAG, "when user in guest mode")
                 wordViewModel.allWords.observe(this@MapActivity) { words -> // Update the cached copy of the words in the adapter.
                     words.let {
                         val data = it
                         uploaddatalistforserver = data as ArrayList<MarkerModel>
                         if (!data.isNullOrEmpty()) {
+                            val builder = LatLngBounds.Builder()
                             for (i in data.indices) {
                                 builder.include(LatLng(data[i].latitude, data[i].longitude))
                                 createMarker(
@@ -246,17 +267,52 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
                                 )
                             }
                             val bounds = builder.build()
-                            map.animateCamera(
-                                CameraUpdateFactory.newLatLngBounds(
-                                    bounds, zoomWidth!!, zoomHeight!!, zoomPadding!!.toInt()
-                                )
-                            )
+
+                            val padding = 0
+                            map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding))
+
+
+                            SharedPreferenceUtils.saveArrayList(uploaddatalistforserver, AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)
+
+                        }
+                        else{
+
                         }
 
                         if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER)) {
                             if (SharedPreferenceUtils.preferenceGetBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, false)) {
                                 startService()
                             }
+                        }
+                    }
+                }
+            }
+        } else {
+            Log.d("logger", "when user in guest mode")
+            wordViewModel.allWords.observe(this@MapActivity) { words -> // Update the cached copy of the words in the adapter.
+                words.let {
+                    val data = it
+                    uploaddatalistforserver = data as ArrayList<MarkerModel>
+                    if (!data.isNullOrEmpty()) {
+                        for (i in data.indices) {
+                            builder.include(LatLng(data[i].latitude, data[i].longitude))
+                            createMarker(
+                                LatLng(data[i].latitude, data[i].longitude), data[i].videopath, LatLng(data[i].latitude, data[i].longitude).toString()
+                            )
+                        }
+                        val bounds = builder.build()
+
+                        val padding = 0
+                        map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding))
+
+                    }
+
+                    SharedPreferenceUtils.saveArrayList(uploaddatalistforserver, AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)
+//                    Log.d("logger", "Final Map Video Size ==> " + mapvideodatalist.size)
+
+                    if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER)) {
+                        if (SharedPreferenceUtils.preferenceGetBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, false)) {
+                            startService()
                         }
                     }
                 }
@@ -311,7 +367,8 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
                 if (!uploaddatalistforserver[mcount].isserver) {
                     Log.d("logger", "Video Uploading on server" + mcount)
                     loginViewModel.saveVideo(
-                        uploaddatalistforserver[mcount].latitude, uploaddatalistforserver[mcount].longitude, uploaddatalistforserver[mcount].videoname, uploaddatalistforserver[mcount].videopath
+                        uploaddatalistforserver[mcount].latitude, uploaddatalistforserver[mcount].longitude,
+                        uploaddatalistforserver[mcount].videoname, uploaddatalistforserver[mcount].videopath
                     )
                 }
             }

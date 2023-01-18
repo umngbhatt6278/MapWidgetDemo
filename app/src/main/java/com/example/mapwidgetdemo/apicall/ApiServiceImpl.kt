@@ -56,9 +56,10 @@ class ApiServiceImpl(private val apiService: ApiService) : ApiServiceClass {
 
     private suspend fun Exception.errorMessage() = when (this) {
         is ResponseException -> {
-            Gson().fromJson(
+            /*Gson().fromJson(
                 response.readText(Charset.defaultCharset()), CommonErrorResponse::class.java
-            ).error!!
+            ).error!!*/
+            response.readText(Charset.defaultCharset())
         }
         else -> {
             localizedMessage!!

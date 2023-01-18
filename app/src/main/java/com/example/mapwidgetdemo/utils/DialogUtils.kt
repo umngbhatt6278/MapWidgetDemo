@@ -93,7 +93,7 @@ object DialogUtils {
             }
         }
         dialog.show()
-        val window: Window = dialog.window!!
-        window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+       /* val window: Window = dialog.window!!
+        window.setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)*/
     }
 }

@@ -89,8 +89,14 @@ class SettingsActivity : BaseActivity(), DialogClickInterface {
 
 
             setUserRole()
+            binding.imgBack.performClick()
+        }
+
+        binding.imgBack.setOnClickListener {
+            finish()
         }
     }
+
 
     private fun removedatafromDevice() {
         if (removeFromServerData.size > 0) {
@@ -118,7 +124,7 @@ class SettingsActivity : BaseActivity(), DialogClickInterface {
         }
         if (!isGuest) {
             binding.texUserMode.text =
-                "Welcome, " + SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.NAME)
+                "Welcome Back, " + SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.NAME)
 
             binding.SwitchUpload.isChecked = !isGuest
             binding.texLogout.isVisible = true
@@ -147,7 +153,7 @@ class SettingsActivity : BaseActivity(), DialogClickInterface {
                 binding.SwitchRemoveFromDevice.isFocusable = false
             }
         } else {
-            binding.texUserMode.text = "GUEST"
+            binding.texUserMode.text = "Welcome, GUEST"
             binding.SwitchRemoveFromDevice.isEnabled = false
             binding.SwitchRemoveFromDevice.isClickable = false
             binding.SwitchRemoveFromDevice.isChecked = false
@@ -181,10 +187,10 @@ class SettingsActivity : BaseActivity(), DialogClickInterface {
         AppConstants.DialogCodes.apply {
             when (code) {
                 DIALOG_SIGN_OUT -> {
-                    if(msg == "") {
+                    if (msg == "") {
                         val intent = Intent(this@SettingsActivity, LoginActivity::class.java)
                         resultLauncher.launch(intent)
-                    }else{
+                    } else {
                         binding.SwitchUpload.isChecked = false
                         SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, false)
                     }

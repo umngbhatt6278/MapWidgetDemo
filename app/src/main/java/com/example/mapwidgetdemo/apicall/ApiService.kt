@@ -36,7 +36,7 @@ class ApiService(private val client: HttpClient) {
 
     suspend fun saveVideo(loginRequestModel: SaveVideoModel): SaveVidoResponse =
         client.submitFormWithBinaryData(url = "api/video", formData = formData {
-            append("name", File(loginRequestModel.filepath).name)
+            append("name", loginRequestModel.name)
             append("lat", loginRequestModel.currentLatitude)
             append("long", loginRequestModel.currentLongitude)
             append("file", File(loginRequestModel.filepath).readBytes(), Headers.build {

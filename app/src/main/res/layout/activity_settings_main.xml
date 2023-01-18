@@ -56,7 +56,8 @@
             android:layout_marginStart="@dimen/headTextLeftMargin"
             android:layout_marginTop="@dimen/_25sdp"
             android:text="GUEST MODE"
-            android:textColor="@color/turqoise"
+            android:textStyle="bold"
+            android:textColor="@color/purple_500"
             android:textSize="@dimen/settingsMainText"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/txtBackToMap" />
@@ -68,7 +69,7 @@
             android:layout_marginStart="@dimen/headTextLeftMargin"
             android:layout_marginTop="@dimen/_15sdp"
             android:text="@string/saveToCloud"
-            android:textColor="@color/turqoise"
+            android:textColor="@color/black"
             android:textSize="@dimen/settingsMainText"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/texUserMode" />
@@ -90,7 +91,7 @@
             android:layout_marginStart="@dimen/headTextLeftMargin"
             android:layout_marginTop="@dimen/_15sdp"
             android:text="Remove From Device"
-            android:textColor="@color/turqoise"
+            android:textColor="@color/black"
             android:textSize="@dimen/settingsMainText"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/textView12" />
@@ -111,21 +112,26 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/headTextLeftMargin"
             android:layout_marginTop="@dimen/_15sdp"
-            android:text="ViewAll"
-            android:textColor="@color/turqoise"
+            android:text="@string/view_all_videos"
+            android:textColor="@color/black"
             android:textSize="@dimen/settingsMainText"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/textView13" />
 
-        <TextView
+
+
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/texLogout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/headTextLeftMargin"
-            android:layout_marginTop="@dimen/_15sdp"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_35sdp"
+            android:layout_marginHorizontal="@dimen/_10sdp"
+            android:layout_marginTop="@dimen/_20sdp"
+            android:background="@drawable/rounded_edittext"
+            android:backgroundTint="@color/purple_500"
+            android:lineSpacingExtra="@dimen/_2sdp"
             android:text="@string/logout"
-            android:textColor="@color/turqoise"
-            android:textSize="@dimen/settingsMainText"
+            android:textColor="@color/white"
+            android:textSize="@dimen/_14sdp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/texViewAll" />
 

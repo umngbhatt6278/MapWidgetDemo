@@ -54,7 +54,7 @@ import java.io.IOException
 import java.util.*
 
 
-class VideoFragment : Fragment(), DialogClickInterface {
+class VideoFragment : Fragment() {
     var zoomBar: SeekBar? = null
     var cameraView: CameraView? = null
     var switchCamera: ImageButton? = null
@@ -709,7 +709,9 @@ class VideoFragment : Fragment(), DialogClickInterface {
         }
         showRecordAndThumbnail()
         stopRecord!!.isClickable = true
-        switchCamera!!.isClickable = true/*if(sharedPreferences.getBoolean(Constants.SAVE_TO_GOOGLE_DRIVE, false) && !noSdCard) {
+        switchCamera!!.isClickable = true
+
+    /*if(sharedPreferences.getBoolean(Constants.SAVE_TO_GOOGLE_DRIVE, false) && !noSdCard) {
             if(VERBOSE)Log.d(TAG, "Auto uploading to Google Drive");
             //Auto upload to Google Drive enabled.
             Intent googleDriveUploadIntent = new Intent(getApplicationContext(), GoogleDriveUploadService.class);
@@ -985,7 +987,7 @@ class VideoFragment : Fragment(), DialogClickInterface {
             if (VERBOSE) Log.d(TAG, "video fragment is already detached. ")
             isDetached = true
         }
-        showRecordSaved()
+
         addMediaToDB()
         if (!isDetached) {
             updateMicroThumbnailAsPerPlayer()
@@ -1012,9 +1014,33 @@ class VideoFragment : Fragment(), DialogClickInterface {
 
     fun addMediaToDB() {
         Log.d(TAG, "mediapath ===> " + cameraView!!.mediaPath.toString())
-        DialogUtils.dialogChildNameOrRewardMsg(
-            requireActivity(), getString(R.string.app_name), "Video Name", AppConstants.DialogCodes.DIALOG_CLAIM_REWARD, this
-        )
+        val wordViewModel: MarkerViewModel by requireActivity().viewModels {
+            WordViewModelFactory((requireActivity().application as ControlVisbilityPreference).repository)
+        }
+        DialogUtils.dialogChildNameOrRewardMsg(requireActivity(), getString(R.string.app_name), "Enter Video Name", AppConstants.DialogCodes.DIALOG_CLAIM_REWARD, object :
+            DialogClickInterface {
+            override fun onClick(code: Int, msg: String) {
+                AppConstants.DialogCodes.apply {
+                    when (code) {
+                        DIALOG_CLAIM_REWARD -> {
+                            wordViewModel.insert(
+                                MarkerModel(
+                                    latitude = currentLatitude,
+                                    longitude = currentLongitude,
+                                    videopath = cameraView!!.mediaPath.toString(),
+                                    videoname = msg,
+                                    isserver = false
+                                )
+                            )
+                            showRecordSaved()
+                            setCameraClose()
+                            requireActivity().finishAffinity()
+                        }
+                    }
+                }
+            }
+
+        })
 
     }
 
@@ -1174,26 +1200,6 @@ class VideoFragment : Fragment(), DialogClickInterface {
                 fragment = VideoFragment()
             }
             return fragment
-        }
-    }
-
-    override fun onClick(code: Int, msg: String) {
-
-        val wordViewModel: MarkerViewModel by requireActivity().viewModels {
-            WordViewModelFactory((requireActivity().application as ControlVisbilityPreference).repository)
-        }
-        AppConstants.DialogCodes.apply {
-            when (code) {
-                DIALOG_CLAIM_REWARD -> {
-                    wordViewModel.insert(
-                        MarkerModel(
-                            latitude = currentLatitude, longitude = currentLongitude, videopath = cameraView!!.mediaPath.toString(), videoname = msg, isserver = false
-                        )
-                    )
-                    setCameraClose()
-                    requireActivity().finishAffinity()
-                }
-            }
         }
     }
 }
