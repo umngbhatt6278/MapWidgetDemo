@@ -13,6 +13,8 @@ object AppConstants {
         const val IS_UPLOAD_SERVER = "IS_UPLOAD_SERVER"
         const val IS_REMOVE_FROM_DEVICE = "IS_REMOVE_FROM_DEVICE"
         const val PREF_MAP_VIDEO_LIST = "PREF_MAP_VIDEO_LIST"
+        const val USER_CURRENT_LATITUDE = "USER_CURRENT_LATITUDE"
+        const val USER_CURRENT_LONGITUDE = "USER_CURRENT_LONGITUDE"
     }
 
 

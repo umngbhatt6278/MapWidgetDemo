@@ -27,6 +27,14 @@ class ApiServiceImpl(private val apiService: ApiService) : ApiServiceClass {
         }
     }
 
+    override suspend fun forgotpassword(loginRequestModel: LoginRequestModel): Either<String, CommonErrorResponse> {
+        return try {
+            Either.Right(apiService.forgotpassword(loginRequestModel))
+        } catch (ex: Exception) {
+            Either.Left(ex.errorMessage())
+        }
+    }
+
     override suspend fun register(loginRequestModel: RegisterRequestModel): Either<String, LoginResponse> {
         return try {
             Either.Right(apiService.register(loginRequestModel))

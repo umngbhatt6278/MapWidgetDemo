@@ -48,7 +48,7 @@ object DialogUtils {
     fun alertDialogSignOut(context: Activity, title: String, subTitle: String, code: Int, dialogClickInterface: DialogClickInterface) {
         val dialog = Dialog(context)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        dialog.setCancelable(true)
+        dialog.setCancelable(false)
         val bindingDialog: AlertDialogWithTitleSubtitleAndTwoButtonBinding =
             AlertDialogWithTitleSubtitleAndTwoButtonBinding.inflate(context.layoutInflater)
         dialog.setContentView(bindingDialog.root)

@@ -331,6 +331,7 @@
     <string name="str_conf_password">Confirm Password</string>
     <string name="str_login">Login</string>
     <string name="str_forgot_password"><u>Forgot password?</u></string>
+    <string name="str_title_forgot_password">Forgot password</string>
 
 
     <string name="serverError">Server Error</string>

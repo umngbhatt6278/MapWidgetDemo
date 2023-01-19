@@ -42,10 +42,7 @@ import com.example.mapwidgetdemo.ui.activity.REQUEST_LOCATION_PERMISSION
 import com.example.mapwidgetdemo.ui.activity.database.MarkerViewModel
 import com.example.mapwidgetdemo.ui.activity.database.WordViewModelFactory
 import com.example.mapwidgetdemo.ui.activity.database.model.MarkerModel
-import com.example.mapwidgetdemo.utils.AllEvents
-import com.example.mapwidgetdemo.utils.AppConstants
-import com.example.mapwidgetdemo.utils.DialogClickInterface
-import com.example.mapwidgetdemo.utils.DialogUtils
+import com.example.mapwidgetdemo.utils.*
 import com.example.mapwidgetdemo.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -235,6 +232,8 @@ class VideoFragment : Fragment() {
     private val locationListener = LocationListener {
         currentLatitude = it.latitude
         currentLongitude = it.longitude
+        SharedPreferenceUtils.preferencePutString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE, currentLatitude.toString())
+        SharedPreferenceUtils.preferencePutString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE, currentLongitude.toString())
         Toast.makeText(requireActivity(), "Cur Lat/Long$currentLatitude,$currentLongitude", Toast.LENGTH_SHORT).show();
     }
 
@@ -711,22 +710,22 @@ class VideoFragment : Fragment() {
         stopRecord!!.isClickable = true
         switchCamera!!.isClickable = true
 
-    /*if(sharedPreferences.getBoolean(Constants.SAVE_TO_GOOGLE_DRIVE, false) && !noSdCard) {
-            if(VERBOSE)Log.d(TAG, "Auto uploading to Google Drive");
-            //Auto upload to Google Drive enabled.
-            Intent googleDriveUploadIntent = new Intent(getApplicationContext(), GoogleDriveUploadService.class);
-            googleDriveUploadIntent.putExtra("uploadFile", cameraView.getMediaPath());
-            if(VERBOSE)Log.d(TAG, "Uploading file = "+cameraView.getMediaPath());
-            getActivity().startService(googleDriveUploadIntent);
-        }
-        if(sharedPreferences.getBoolean(Constants.SAVE_TO_DROPBOX, false) && !noSdCard){
-            if(VERBOSE)Log.d(TAG, "Auto upload to Dropbox");
-            //Auto upload to Dropbox enabled
-            Intent dropboxUploadIntent = new Intent(getApplicationContext(), DropboxUploadService.class);
-            dropboxUploadIntent.putExtra("uploadFile", cameraView.getMediaPath());
-            if(VERBOSE)Log.d(TAG, "Uploading file = "+cameraView.getMediaPath());
-            getActivity().startService(dropboxUploadIntent);
-        }*/
+        /*if(sharedPreferences.getBoolean(Constants.SAVE_TO_GOOGLE_DRIVE, false) && !noSdCard) {
+                if(VERBOSE)Log.d(TAG, "Auto uploading to Google Drive");
+                //Auto upload to Google Drive enabled.
+                Intent googleDriveUploadIntent = new Intent(getApplicationContext(), GoogleDriveUploadService.class);
+                googleDriveUploadIntent.putExtra("uploadFile", cameraView.getMediaPath());
+                if(VERBOSE)Log.d(TAG, "Uploading file = "+cameraView.getMediaPath());
+                getActivity().startService(googleDriveUploadIntent);
+            }
+            if(sharedPreferences.getBoolean(Constants.SAVE_TO_DROPBOX, false) && !noSdCard){
+                if(VERBOSE)Log.d(TAG, "Auto upload to Dropbox");
+                //Auto upload to Dropbox enabled
+                Intent dropboxUploadIntent = new Intent(getApplicationContext(), DropboxUploadService.class);
+                dropboxUploadIntent.putExtra("uploadFile", cameraView.getMediaPath());
+                if(VERBOSE)Log.d(TAG, "Uploading file = "+cameraView.getMediaPath());
+                getActivity().startService(dropboxUploadIntent);
+            }*/
     }
 
     var rotationAngle = 0f
@@ -1025,11 +1024,7 @@ class VideoFragment : Fragment() {
                         DIALOG_CLAIM_REWARD -> {
                             wordViewModel.insert(
                                 MarkerModel(
-                                    latitude = currentLatitude,
-                                    longitude = currentLongitude,
-                                    videopath = cameraView!!.mediaPath.toString(),
-                                    videoname = msg,
-                                    isserver = false
+                                    latitude = currentLatitude, longitude = currentLongitude, videopath = cameraView!!.mediaPath.toString(), videoname = msg, isserver = false
                                 )
                             )
                             showRecordSaved()

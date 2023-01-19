@@ -48,6 +48,9 @@ class RegistrationActivity : BaseActivity() {
             }
         }
 
+        binding.txtRegister.setOnClickListener {
+            finish()
+        }
     }
 
 

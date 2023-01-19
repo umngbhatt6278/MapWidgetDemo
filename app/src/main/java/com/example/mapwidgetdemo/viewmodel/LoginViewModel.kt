@@ -10,10 +10,7 @@ import com.example.mapwidgetdemo.apicall.ApiServiceImpl
 import com.example.mapwidgetdemo.request.LoginRequestModel
 import com.example.mapwidgetdemo.request.RegisterRequestModel
 import com.example.mapwidgetdemo.request.SaveVideoModel
-import com.example.mapwidgetdemo.response.Data
-import com.example.mapwidgetdemo.response.GetVideoResponse
-import com.example.mapwidgetdemo.response.LoginResponse
-import com.example.mapwidgetdemo.response.SaveVidoResponse
+import com.example.mapwidgetdemo.response.*
 import com.example.mapwidgetdemo.utils.AllEvents
 import com.example.mapwidgetdemo.utils.validateEmail
 import kotlinx.coroutines.channels.Channel
@@ -43,6 +40,9 @@ class LoginViewModel(private val apiServiceImpl: ApiServiceImpl) : ViewModel() {
     val userListResponse get() = _userListResponse
     val videoListResponse get() = _videoListResponse
 
+    private val _commonResponse = MutableLiveData<CommonErrorResponse?>()
+    val commonResponse get() = _commonResponse
+
     fun login() {
 
         val emailString = email.get()
@@ -70,6 +70,38 @@ class LoginViewModel(private val apiServiceImpl: ApiServiceImpl) : ViewModel() {
                         eventsChannel.send(AllEvents.DynamicError(it))
                     }, {
                         loginResponse.postValue(it)
+                        eventsChannel.send(AllEvents.Loading(false))
+                        eventsChannel.send(AllEvents.SuccessBool(true, 1))
+                        eventsChannel.send(AllEvents.Success(it))
+                    })
+                }
+            }
+        }
+    }
+
+    fun forgotPassword() {
+
+        val emailString = email.get()
+
+        viewModelScope.launch {
+            when {/* !isNetworkAvailable.value!! -> {
+                    eventsChannel.send(AllEvents.StringResource(R.string.noInternet))
+                }*/
+                emailString.isNullOrBlank() -> {
+                    eventsChannel.send(
+                        AllEvents.StringResource(R.string.enter_email, null)
+                    )
+                }
+                emailString.validateEmail() -> {
+                    eventsChannel.send(AllEvents.StringResource(R.string.error_email_invalid))
+                }
+                else -> {
+                    eventsChannel.send(AllEvents.Loading(true))
+                    apiServiceImpl.forgotpassword(LoginRequestModel(email = emailString)).either({
+                        eventsChannel.send(AllEvents.Loading(false))
+                        eventsChannel.send(AllEvents.DynamicError(it))
+                    }, {
+                        _commonResponse.postValue(it)
                         eventsChannel.send(AllEvents.Loading(false))
                         eventsChannel.send(AllEvents.SuccessBool(true, 1))
                         eventsChannel.send(AllEvents.Success(it))

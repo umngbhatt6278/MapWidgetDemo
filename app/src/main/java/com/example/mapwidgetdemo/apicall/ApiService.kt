@@ -3,6 +3,7 @@ package com.example.mapwidgetdemo.apicall
 import com.example.mapwidgetdemo.request.LoginRequestModel
 import com.example.mapwidgetdemo.request.RegisterRequestModel
 import com.example.mapwidgetdemo.request.SaveVideoModel
+import com.example.mapwidgetdemo.response.CommonErrorResponse
 import com.example.mapwidgetdemo.response.GetVideoResponse
 import com.example.mapwidgetdemo.response.LoginResponse
 import com.example.mapwidgetdemo.response.SaveVidoResponse
@@ -32,6 +33,12 @@ class ApiService(private val client: HttpClient) {
     suspend fun getUsers(): GetVideoResponse = client.get {
         url(ApiRoutes.SAVE_VIDEO)
         header(HttpHeaders.ContentType, ContentType.Application.Json)
+    }
+
+    suspend fun forgotpassword(loginRequestModel: LoginRequestModel): CommonErrorResponse = client.post {
+        url(ApiRoutes.FORGOT_PASSWORD)
+        header(HttpHeaders.ContentType, ContentType.Application.Json)
+        body = loginRequestModel
     }
 
     suspend fun saveVideo(loginRequestModel: SaveVideoModel): SaveVidoResponse =

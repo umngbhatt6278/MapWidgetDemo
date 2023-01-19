@@ -31,6 +31,7 @@
             android:layout_marginTop="@dimen/_16sdp"
             android:paddingHorizontal="@dimen/_16sdp"
             android:text="title"
+            android:gravity="center"
             android:textColor="@color/black"
             android:textSize="@dimen/_12ssp"
             app:layout_constraintEnd_toEndOf="parent"

@@ -8,5 +8,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class CommonErrorResponse(
-    @SerializedName("error") var error: String? = null,
+    @SerializedName("status") var status: String? = null,
+    @SerializedName("message") var message: String? = null,
 )

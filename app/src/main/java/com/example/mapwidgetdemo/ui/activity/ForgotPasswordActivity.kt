@@ -4,7 +4,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
+import com.example.mapwidgetdemo.databinding.ActivityForgotPasswordBinding
 import com.example.mapwidgetdemo.databinding.ActivityLoginBinding
+import com.example.mapwidgetdemo.response.CommonErrorResponse
 import com.example.mapwidgetdemo.response.LoginResponse
 import com.example.mapwidgetdemo.utils.AllEvents
 import com.example.mapwidgetdemo.utils.AppConstants.SharedPreferenceKeys.EMAIL
@@ -14,13 +16,13 @@ import com.example.mapwidgetdemo.utils.AppConstants.SharedPreferenceKeys.IS_GUES
 import com.example.mapwidgetdemo.utils.AppConstants.SharedPreferenceKeys.NAME
 import kotlinx.coroutines.launch
 
-class LoginActivity : BaseActivity() {
+class ForgotPasswordActivity : BaseActivity() {
 
-    private lateinit var binding: ActivityLoginBinding
+    private lateinit var binding: ActivityForgotPasswordBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityLoginBinding.inflate(layoutInflater)
+        binding = ActivityForgotPasswordBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         initViews()
@@ -28,6 +30,8 @@ class LoginActivity : BaseActivity() {
 
     private fun initViews() {
         binding.loginViewModel = loginViewModel
+
+
         lifecycleScope.launch {
             loginViewModel.allEventsFlow.collect { event ->
                 when (event) {
@@ -39,19 +43,15 @@ class LoginActivity : BaseActivity() {
                         }
                     }
                     is AllEvents.Success<*> -> {
-                        val loginresponse = event.data as LoginResponse
-                        SharedPreferenceUtils.preferencePutString(F_TOKEN, loginresponse.data.token)
-                        SharedPreferenceUtils.preferencePutString(NAME, loginresponse.data.name)
-                        SharedPreferenceUtils.preferencePutString(EMAIL, loginresponse.data.email)
-                        SharedPreferenceUtils.preferencePutBoolean(IS_GUEST, false)
-                        setResult(RESULT_OK)
+                        val loginresponse = event.data as CommonErrorResponse
+                        Toast.makeText(this@ForgotPasswordActivity, loginresponse.message, Toast.LENGTH_SHORT).show()
                         finish()
                     }
                     else -> {
-                        val asString = event.asString(this@LoginActivity)
+                        val asString = event.asString(this@ForgotPasswordActivity)
                         if (asString !is Unit && asString.toString().isNotBlank()) {
                             Toast.makeText(
-                                this@LoginActivity, asString.toString(), Toast.LENGTH_SHORT
+                                this@ForgotPasswordActivity, asString.toString(), Toast.LENGTH_SHORT
                             ).show()
                         }
                     }
@@ -59,18 +59,7 @@ class LoginActivity : BaseActivity() {
             }
         }
 
-
-
-        binding.txtRegister.setOnClickListener {
-            startActivity(Intent(this, RegistrationActivity::class.java))
-        }
-
-        binding.txtForgotPasword.setOnClickListener {
-            startActivity(Intent(this, ForgotPasswordActivity::class.java))
-        }
-
         binding.imgBack.setOnClickListener {
-            setResult(RESULT_CANCELED)
             finish()
         }
     }

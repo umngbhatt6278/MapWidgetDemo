@@ -13,20 +13,17 @@ import com.example.mapwidgetdemo.ui.activity.database.MarkerViewModel
 import com.example.mapwidgetdemo.ui.activity.database.WordViewModelFactory
 import com.example.mapwidgetdemo.ui.activity.database.model.MarkerModel
 import com.example.mapwidgetdemo.utils.AppConstants
-import com.example.mapwidgetdemo.utils.AppConstants.DialogCodes.Companion.DIALOG_SIGN_OUT
 import com.example.mapwidgetdemo.utils.DialogClickInterface
 import com.example.mapwidgetdemo.utils.DialogUtils
 import com.example.mapwidgetdemo.utils.SharedPreferenceUtils
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.model.LatLng
 
 class SettingsActivity : BaseActivity(), DialogClickInterface {
 
     private lateinit var binding: ActivitySettingsMainBinding
 
-    var isGuest: Boolean = true
-    var isremoveFromDevice: Boolean = false
-    var removeFromServerData: ArrayList<MarkerModel> = ArrayList()
+    private var isGuest: Boolean = true
+    private var isremoveFromDevice: Boolean = false
+    private var removeFromServerData: ArrayList<MarkerModel> = ArrayList()
 
     private val wordViewModel: MarkerViewModel by viewModels {
         WordViewModelFactory((application as MainApplication).repository)
@@ -71,23 +68,8 @@ class SettingsActivity : BaseActivity(), DialogClickInterface {
         }
 
         binding.texLogout.setOnClickListener {
-            SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_GUEST, true)
-            SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, false)
-            SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_REMOVE_FROM_DEVICE, false)
-            SharedPreferenceUtils.preferencePutString(AppConstants.SharedPreferenceKeys.F_TOKEN, "")
+            SharedPreferenceUtils.clearLoginInfo()
             binding.SwitchUpload.isChecked = false
-
-            wordViewModel.allWords.observe(this@SettingsActivity) { words -> // Update the cached copy of the words in the adapter.
-                words.let {
-                    val data = it
-                    removeFromServerData = data as ArrayList<MarkerModel>
-                    Log.d("logger", "when logout time ==> " + removeFromServerData.size)
-
-                    SharedPreferenceUtils.saveArrayList(removeFromServerData, AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)
-                }
-            }
-
-
             setUserRole()
             binding.imgBack.performClick()
         }
@@ -117,7 +99,7 @@ class SettingsActivity : BaseActivity(), DialogClickInterface {
         }
     }
 
-    fun setUserRole() {
+    private fun setUserRole() {
         if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.IS_GUEST)) {
             isGuest =
                 SharedPreferenceUtils.preferenceGetBoolean(AppConstants.SharedPreferenceKeys.IS_GUEST, true)
@@ -153,7 +135,7 @@ class SettingsActivity : BaseActivity(), DialogClickInterface {
                 binding.SwitchRemoveFromDevice.isFocusable = false
             }
         } else {
-            binding.texUserMode.text = "Welcome, GUEST"
+            binding.texUserMode.text = "Welcome Back, GUEST"
             binding.SwitchRemoveFromDevice.isEnabled = false
             binding.SwitchRemoveFromDevice.isClickable = false
             binding.SwitchRemoveFromDevice.isChecked = false
@@ -173,13 +155,16 @@ class SettingsActivity : BaseActivity(), DialogClickInterface {
         }
     }
 
-    var resultLauncher =
+    private var resultLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
-                val data: Intent? = result.data
                 SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, true)
                 binding.SwitchUpload.isChecked = true
                 setUserRole()
+            }
+            else{
+                SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, false)
+                binding.SwitchUpload.isChecked = false
             }
         }
 

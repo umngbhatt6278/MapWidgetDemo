@@ -86,5 +86,15 @@ object SharedPreferenceUtils {
         return gson.fromJson(json, type)
     }
 
+    fun clearLoginInfo() {
+        preferenceRemoveKey(AppConstants.SharedPreferenceKeys.F_TOKEN)
+        preferenceRemoveKey(AppConstants.SharedPreferenceKeys.IS_GUEST)
+        preferenceRemoveKey(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER)
+        preferenceRemoveKey(AppConstants.SharedPreferenceKeys.IS_REMOVE_FROM_DEVICE)
+        preferenceRemoveKey(AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)
+        preferenceRemoveKey(AppConstants.SharedPreferenceKeys.EMAIL)
+        preferenceRemoveKey(AppConstants.SharedPreferenceKeys.NAME)
+    }
+
 
 }
