@@ -28,10 +28,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.LatLngBounds
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
@@ -146,6 +143,8 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
 
                                 marker = map.addMarker(userIndicator)
 
+
+
                                 markerList.add(marker)
                             }
 
@@ -238,12 +237,15 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             requestPermission()
-        } //        map.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style))
+        }
         map.isMyLocationEnabled = true
-        map.isTrafficEnabled = false
+        map.isTrafficEnabled = true
         map.isBuildingsEnabled = true
         map.isIndoorEnabled = true
+        map.uiSettings.isIndoorLevelPickerEnabled = true
         map.uiSettings.isCompassEnabled = true
+        map.mapType = GoogleMap.MAP_TYPE_SATELLITE
+        map.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style))
         map.uiSettings.setAllGesturesEnabled(true)
         map.setOnMarkerClickListener(this)
         map.setOnMapLongClickListener(this)
@@ -342,7 +344,7 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
                                 CameraUpdateFactory.newLatLngZoom(
                                     LatLng(
                                         SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE).toString().toDouble(), SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE).toString().toDouble()
-                                    ), 17f
+                                    ), 15f
                                 )
                             )
                         }
@@ -400,7 +402,7 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
                 this@MapActivity, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE
             )
             val notification: Notification =
-                NotificationCompat.Builder(this@MapActivity, ForegroundService.CHANNEL_ID).setContentTitle("Foreground Service").setContentText("Sevice Starteed").setSmallIcon(R.drawable.ic_pin).setContentIntent(pendingIntent).build()
+                NotificationCompat.Builder(this@MapActivity, ForegroundService.CHANNEL_ID).setContentTitle(getString(R.string.app_name)).setContentText("Video Uploading On Server").setSmallIcon(R.drawable.ic_pin).setContentIntent(pendingIntent).build()
             binder.service.startForeground(1, notification)
         }
 

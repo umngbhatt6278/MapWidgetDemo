@@ -42,6 +42,11 @@ open class BaseActivity: AppCompatActivity(){
         super.onCreate(savedInstanceState, persistentState)
         loginViewModel.isNetworkAvailable.value = isConnectedToInternet()
         connectionLiveData = ConnectionLiveData(this)
+
+    }
+
+    override fun onResume() {
+        super.onResume()
         startLocationUpdates()
     }
 
@@ -101,8 +106,8 @@ open class BaseActivity: AppCompatActivity(){
         currentLatitude = it.latitude
         currentLongitude = it.longitude
         SharedPreferenceUtils.preferencePutString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE, currentLatitude.toString())
-        SharedPreferenceUtils.preferencePutString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE, currentLongitude.toString())
-        Toast.makeText(this, "Cur Lat/Long$currentLatitude,$currentLongitude", Toast.LENGTH_SHORT).show();
+        SharedPreferenceUtils.preferencePutString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LONGITUDE, currentLongitude.toString())
+//        Toast.makeText(this, "Cur Lat/Long$currentLatitude,$currentLongitude", Toast.LENGTH_SHORT).show();
     }
 
     fun checkPermission(): Boolean {
@@ -137,15 +142,5 @@ open class BaseActivity: AppCompatActivity(){
             ),
             REQUEST_LOCATION_PERMISSION
         )
-    }
-
-    fun isServiceRunning(serviceClass: Class<*>): Boolean {
-        val manager = this.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager?
-        for (service in manager!!.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.name == service.service.className) {
-                return true
-            }
-        }
-        return false
     }
 }
