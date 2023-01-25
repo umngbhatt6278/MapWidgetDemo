@@ -350,4 +350,7 @@
     <string name="upload_server_msg">You Need To Login This Application For Uploading To Server</string>
     <string name="title_text">Title Text</string>
     <string name="view_all_videos">View All Videos</string>
+    <string name="title_activity_tab">TabActivity</string>
+    <string name="tab_text_1">MAP</string>
+    <string name="tab_text_2">LIST</string>
 </resources>

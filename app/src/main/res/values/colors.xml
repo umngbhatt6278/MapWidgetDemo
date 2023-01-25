@@ -9,6 +9,8 @@
     <color name="white">#FFFFFFFF</color>
     <color name="transparentBar">#00000000</color>
 
+    <color name="light_orange">#FF9380</color>
+
 
 
     <color name="settingsBarColor">#000000</color>

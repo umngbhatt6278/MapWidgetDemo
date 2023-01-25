@@ -1,21 +1,28 @@
-package com.example.mapwidgetdemo.ui.activity
+package com.example.mapwidgetdemo.ui.activity.fragment
 
-import android.Manifest.permission.*
+import android.Manifest
 import android.app.*
 import android.content.*
 import android.content.pm.PackageManager
+import android.graphics.Point
 import android.location.Location
-import android.os.*
+import android.os.Build
+import android.os.Bundle
+import android.os.IBinder
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
-import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.mapwidgetdemo.R
 import com.example.mapwidgetdemo.databinding.ActivityMapBinding
 import com.example.mapwidgetdemo.response.GetVideoResponse
 import com.example.mapwidgetdemo.services.ForegroundService
+import com.example.mapwidgetdemo.ui.activity.*
 import com.example.mapwidgetdemo.ui.activity.database.MarkerViewModel
 import com.example.mapwidgetdemo.ui.activity.database.WordViewModelFactory
 import com.example.mapwidgetdemo.ui.activity.database.model.MarkerModel
@@ -25,14 +32,13 @@ import com.example.mapwidgetdemo.utils.SharedPreferenceUtils
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
 import com.google.android.material.snackbar.Snackbar
-import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 
-open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener,
+class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener,
     GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerDragListener {
 
     private lateinit var map: GoogleMap
@@ -40,50 +46,75 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
     private var zoomHeight: Int? = null
     private var zoomPadding: Double? = null
     var uploaddatalistforserver: ArrayList<MarkerModel> = ArrayList()
-    private lateinit var binding: ActivityMapBinding
     var mcount = 0
 
 
     var markerList: ArrayList<Marker> = ArrayList()
+    var latList: ArrayList<LatLng> = ArrayList()
 
     private val wordViewModel: MarkerViewModel by viewModels {
-        WordViewModelFactory((application as MainApplication).repository)
+        WordViewModelFactory((activity?.application as MainApplication).repository)
     }
 
 
     var mapvideodatalist: ArrayList<MarkerModel> = ArrayList()
     val builder = LatLngBounds.Builder()
 
+    lateinit var fragmentmapBinding: ActivityMapBinding
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityMapBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        fragmentmapBinding = ActivityMapBinding.inflate(inflater, container, false)
+        return fragmentmapBinding.root
+    }
 
-        val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val mapFragment =
+            childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment //        val mapFragment = requireActivity().supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+
         if (!checkPermission()) {
             requestPermission()
         } else {
             mapFragment.getMapAsync(this)
-            zoomWidth = resources.displayMetrics.widthPixels
-            zoomHeight = resources.displayMetrics.heightPixels
-            zoomPadding = (zoomWidth!! * 0.10) // offset
-
         }
 
 
-        binding.btnsync.setOnClickListener {
-            val intent = Intent(this, HomeTabActivity::class.java)
-            startActivity(intent)
+        fragmentmapBinding.btnsync.setOnClickListener {
+
+
+
+
+            /* val intent = Intent(activity!!, SettingsActivity::class.java)
+             startActivity(intent)*/
         }
 
 
-        wordViewModel.allWords.observe(this@MapActivity) { words -> // Update the cached copy of the words in the adapter.
+        wordViewModel.allWords.observe(this@MapViewFragment) { words -> // Update the cached copy of the words in the adapter.
             uploaddatalistforserver = words as ArrayList<MarkerModel>
         }
-
-
     }
+
+
+    fun getCornerBoundsPointList(){
+        if (map != null) {
+            var pincount = 0
+            val tempListdata: ArrayList<MarkerModel> = ArrayList()
+            for (i in mapvideodatalist.indices) {
+                if (map.projection.visibleRegion.latLngBounds.contains(LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude))) {
+                    pincount = pincount + 1
+                    tempListdata.add(
+                        MarkerModel(
+                            mapvideodatalist[i].id, mapvideodatalist[i].latitude, mapvideodatalist[i].longitude, mapvideodatalist[i].videopath, mapvideodatalist[i].videoname, mapvideodatalist[i].isserver
+                        )
+                    )
+                }
+            }
+            Toast.makeText(requireActivity(), "Bounds Pin Counnt ==> " + pincount.toString(), Toast.LENGTH_SHORT).show()
+            SharedPreferenceUtils.saveArrayList(tempListdata, AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)
+        }
+    }
+
 
     private fun getApiData() {
         loginViewModel.getVideosFromApi()
@@ -127,7 +158,7 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
                                 }
                             }
                             for (i in mapvideodatalist.indices) {
-                                builder.include(LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude))
+//                                builder.include(LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude))
                                 var marker: Marker
                                 var userIndicator = MarkerOptions()
                                 if (mapvideodatalist[i].isserver) {
@@ -141,19 +172,28 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
                                 markerList.add(marker)
                             }
 
-                            val bounds = builder.build()
+                           /* val bounds = builder.build()
                             if (areBoundsTooSmall(bounds, 300)) {
                                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(bounds.center, 17f))
                             } else {
                                 map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 0))
-                            }
+                            }*/
+
+                            map.animateCamera(
+                                CameraUpdateFactory.newLatLngZoom(
+                                    LatLng(
+                                        SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE).toString().toDouble(),
+                                        SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LONGITUDE).toString().toDouble()
+                                    ), 17f
+                                )
+                            )
 
                             SharedPreferenceUtils.saveArrayList(mapvideodatalist, AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)
 
                             Log.d("logger", "Final Map Video Size on api data getting==> " + mapvideodatalist.size)
 
                         } else {
-                            wordViewModel.allWords.observe(this@MapActivity) { words -> // Update the cached copy of the words in the adapter.
+                            wordViewModel.allWords.observe(this@MapViewFragment) { words -> // Update the cached copy of the words in the adapter.
                                 words.let {
                                     val data = it
                                     uploaddatalistforserver = data as ArrayList<MarkerModel>
@@ -190,7 +230,8 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
                                             map.animateCamera(
                                                 CameraUpdateFactory.newLatLngZoom(
                                                     LatLng(
-                                                        SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE).toString().toDouble(), SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE).toString().toDouble()
+                                                        SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE).toString().toDouble(),
+                                                        SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LONGITUDE).toString().toDouble()
                                                     ), 15f
                                                 )
                                             )
@@ -215,10 +256,10 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
 
                     }
                     else -> {
-                        val asString = event.asString(this@MapActivity)
+                        val asString = event.asString(activity!!)
                         if (asString !is Unit && asString.toString().isNotBlank()) {
                             Toast.makeText(
-                                this@MapActivity, asString.toString(), Toast.LENGTH_SHORT
+                                activity!!, asString.toString(), Toast.LENGTH_SHORT
                             ).show()
                         }
                     }
@@ -227,16 +268,13 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
         }
     }
 
-
-    inline fun <reified T : Any> String.toKotlinObject(): T = Gson().fromJson(this, T::class.java)
-
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
         map.uiSettings.isMapToolbarEnabled = true
         if (ActivityCompat.checkSelfPermission(
-                this, ACCESS_FINE_LOCATION
+                activity!!, Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                this, ACCESS_COARSE_LOCATION
+                activity!!, Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             requestPermission()
@@ -247,7 +285,7 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
         map.isIndoorEnabled = true
         map.uiSettings.isIndoorLevelPickerEnabled = true
         map.uiSettings.isCompassEnabled = true //        map.mapType = GoogleMap.MAP_TYPE_SATELLITE
-        map.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style))
+        map.setMapStyle(MapStyleOptions.loadRawResourceStyle(activity!!, R.raw.map_style))
         map.uiSettings.setAllGesturesEnabled(true)
         map.setOnMarkerClickListener(this)
         map.setOnMapLongClickListener(this)
@@ -261,7 +299,7 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
                 getApiData()
             } else {
                 Log.d("logger", "when user in guest mode")
-                wordViewModel.allWords.observe(this@MapActivity) { words -> // Update the cached copy of the words in the adapter.
+                wordViewModel.allWords.observe(activity!!) { words -> // Update the cached copy of the words in the adapter.
                     words.let {
                         val data = it
                         uploaddatalistforserver = data as ArrayList<MarkerModel>
@@ -308,7 +346,7 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
         } else {
             Log.d("logger", "when user in guest mode")
 
-            wordViewModel.allWords.observe(this@MapActivity) { words -> // Update the cached copy of the words in the adapter.
+            wordViewModel.allWords.observe(activity!!) { words -> // Update the cached copy of the words in the adapter.
                 words.let {
                     val data = it
                     uploaddatalistforserver = data as ArrayList<MarkerModel>
@@ -367,22 +405,29 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
         return result[0] < minDistanceInMeter
     }
 
-
     override fun onResume() {
         super.onResume()
         Log.d("logger", "Token ==> " + SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.F_TOKEN).toString())
         getdata()
+
+
     }
 
     override fun onDestroy() {
         super.onDestroy()
         stopService()
+
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+
     }
 
     open fun startService() {
-        val serviceIntent = Intent(this, ForegroundService::class.java)
+        val serviceIntent = Intent(activity!!, ForegroundService::class.java)
         serviceIntent.putExtra("inputExtra", "Foreground Service Example in Android") //        ContextCompat.startForegroundService(this, serviceIntent)
-        bindService(serviceIntent, playerServiceConnection, Context.BIND_AUTO_CREATE)
+        activity!!.bindService(serviceIntent, playerServiceConnection, Context.BIND_AUTO_CREATE)
 
     }
 
@@ -392,12 +437,12 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
 
             Log.d("service", "Service connected")
             createNotificationChannel()
-            val notificationIntent = Intent(this@MapActivity, MapActivity::class.java)
+            val notificationIntent = Intent(activity!!, MapActivity::class.java)
             val pendingIntent = PendingIntent.getActivity(
-                this@MapActivity, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE
+                activity!!, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE
             )
             val notification: Notification =
-                NotificationCompat.Builder(this@MapActivity, ForegroundService.CHANNEL_ID).setContentTitle(getString(R.string.app_name)).setContentText("Video Uploading On Server").setSmallIcon(R.drawable.ic_normal_pin).setContentIntent(pendingIntent).build()
+                NotificationCompat.Builder(activity!!, ForegroundService.CHANNEL_ID).setContentTitle(getString(R.string.app_name)).setContentText("Video Uploading On Server").setSmallIcon(R.drawable.ic_normal_pin).setContentIntent(pendingIntent).build()
             binder.service.startForeground(1, notification)
         }
 
@@ -448,10 +493,10 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
                             }
                         }
                         else -> {
-                            val asString = event.asString(this@MapActivity)
+                            val asString = event.asString(activity!!)
                             if (asString !is Unit && asString.toString().isNotBlank()) {
                                 Toast.makeText(
-                                    this@MapActivity, asString.toString(), Toast.LENGTH_SHORT
+                                    activity!!, asString.toString(), Toast.LENGTH_SHORT
                                 ).show()
                             }
                         }
@@ -487,14 +532,14 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
             val serviceChannel = NotificationChannel(
                 ForegroundService.CHANNEL_ID, "Foreground Service Channel", NotificationManager.IMPORTANCE_DEFAULT
             )
-            val manager = getSystemService(NotificationManager::class.java)
+            val manager = activity!!.getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(serviceChannel)
         }
     }
 
     open fun stopService() {
-        val serviceIntent = Intent(this, ForegroundService::class.java)
-        stopService(serviceIntent)
+        val serviceIntent = Intent(activity!!, ForegroundService::class.java)
+        activity!!.stopService(serviceIntent)
     }
 
     protected open fun createMarker(latlang: LatLng, title: String?, snippet: String?): Marker? {
@@ -513,13 +558,13 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
 
                 if (locationAccepted && writeAccepted && readAccepted) { //                    onMapReady(map)
                 } else {
-                    if (shouldShowRequestPermissionRationale(ACCESS_FINE_LOCATION)) {
+                    if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
                         showMessageOKCancel(
                             "You need to allow access to both the permissions"
                         ) { _, _ ->
                             requestPermissions(
                                 arrayOf(
-                                    ACCESS_FINE_LOCATION, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE, CAMERA, RECORD_AUDIO
+                                    Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO
                                 ), REQUEST_LOCATION_PERMISSION
                             )
                         }
@@ -531,18 +576,19 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
     }
 
     open fun showMessageOKCancel(message: String, okListener: DialogInterface.OnClickListener) {
-        AlertDialog.Builder(this@MapActivity).setMessage(message).setPositiveButton("OK", okListener).setNegativeButton("Cancel", null).create().show()
+        AlertDialog.Builder(activity!!).setMessage(message).setPositiveButton("OK", okListener).setNegativeButton("Cancel", null).create().show()
     }
 
     override fun onMarkerClick(marker: Marker?): Boolean {
-        val intent = Intent(this, VideoActivity::class.java).putExtra("VideoPath", marker?.title)
+        val intent =
+            Intent(activity!!, VideoActivity::class.java).putExtra("VideoPath", marker?.title)
         startActivity(intent)
         return true
     }
 
     override fun onMapLongClick(marker: LatLng?) { //        Toast.makeText(this, "${marker?.latitude} ${marker?.longitude}", Toast.LENGTH_SHORT).show()
         val snackbar = Snackbar.make(
-            binding.mainlayout, "Latitude:${marker?.latitude} Longitude:${marker?.longitude}", Snackbar.LENGTH_LONG
+            fragmentmapBinding.mainlayout, "Latitude:${marker?.latitude} Longitude:${marker?.longitude}", Snackbar.LENGTH_LONG
         )
         snackbar.show()
     }
@@ -567,9 +613,7 @@ open class MapActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerC
                 break
             }
         }
-
-
     }
-
-
 }
+
+

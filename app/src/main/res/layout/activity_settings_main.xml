@@ -38,6 +38,7 @@
             app:layout_constraintTop_toTopOf="@id/imgBack" />
 
         <TextView
+            android:visibility="gone"
             android:id="@+id/texUserMode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -55,7 +56,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/headTextLeftMargin"
-            android:layout_marginTop="@dimen/_15sdp"
+            android:layout_marginTop="@dimen/_25sdp"
             android:text="@string/saveToCloud"
             android:textColor="@color/black"
             android:textSize="@dimen/settingsMainText"
@@ -95,6 +96,7 @@
             app:layout_constraintTop_toTopOf="@id/textView13" />
 
         <TextView
+            android:visibility="gone"
             android:id="@+id/texViewAll"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -113,7 +115,7 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/_35sdp"
             android:layout_marginHorizontal="@dimen/_10sdp"
-            android:layout_marginTop="@dimen/_20sdp"
+            android:layout_marginTop="@dimen/_35sdp"
             android:background="@drawable/rounded_edittext"
             android:backgroundTint="@color/purple_500"
             android:lineSpacingExtra="@dimen/_2sdp"

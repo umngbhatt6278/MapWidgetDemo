@@ -25,7 +25,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/_10sdp"
             android:layout_marginBottom="@dimen/_10sdp"
-            android:backgroundTint="@color/purple_500"
+            android:backgroundTint="@color/light_orange"
             android:src="@drawable/ic_baseline_settings_24"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />

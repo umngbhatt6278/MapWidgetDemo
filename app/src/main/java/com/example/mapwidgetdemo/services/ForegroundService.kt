@@ -9,8 +9,7 @@ import android.os.IBinder
 import androidx.annotation.Nullable
 import androidx.core.app.NotificationCompat
 import com.example.mapwidgetdemo.R
-import com.example.mapwidgetdemo.ui.activity.MapActivity
-import com.example.mapwidgetdemo.ui.activity.location.LocationService
+import com.example.mapwidgetdemo.ui.activity.HomeTabActivity
 
 
 class ForegroundService : Service() {
@@ -24,7 +23,7 @@ class ForegroundService : Service() {
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         val input: String = intent.getStringExtra("inputExtra")!!
         createNotificationChannel()
-        val notificationIntent = Intent(this, MapActivity::class.java)
+        val notificationIntent = Intent(this, HomeTabActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
             this, 0, notificationIntent, FLAG_IMMUTABLE
         )

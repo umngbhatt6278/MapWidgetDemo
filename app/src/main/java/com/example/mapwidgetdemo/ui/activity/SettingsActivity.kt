@@ -54,10 +54,10 @@ class SettingsActivity : BaseActivity(), DialogClickInterface {
 
         binding.SwitchRemoveFromDevice.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked) {
-                SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, isChecked)
+                SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_REMOVE_FROM_DEVICE, true)
                 removedatafromDevice()
             } else {
-                SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, isChecked)
+                SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_REMOVE_FROM_DEVICE, false)
             }
 
         }

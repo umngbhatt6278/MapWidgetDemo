@@ -1016,7 +1016,18 @@ class VideoFragment : Fragment() {
         val wordViewModel: MarkerViewModel by requireActivity().viewModels {
             WordViewModelFactory((requireActivity().application as ControlVisbilityPreference).repository)
         }
-        DialogUtils.dialogChildNameOrRewardMsg(requireActivity(), getString(R.string.app_name), "Enter Video Name", AppConstants.DialogCodes.DIALOG_CLAIM_REWARD, object :
+
+        wordViewModel.insert(
+            MarkerModel(
+                latitude = currentLatitude, longitude = currentLongitude, videopath = cameraView!!.mediaPath.toString(),
+                videoname = File(cameraView!!.mediaPath).name, isserver = false
+            )
+        )
+        showRecordSaved()
+        setCameraClose()
+        requireActivity().finishAffinity()
+
+        /*DialogUtils.dialogChildNameOrRewardMsg(requireActivity(), getString(R.string.app_name), "Enter Video Name", AppConstants.DialogCodes.DIALOG_CLAIM_REWARD, object :
             DialogClickInterface {
             override fun onClick(code: Int, msg: String) {
                 AppConstants.DialogCodes.apply {
@@ -1035,7 +1046,7 @@ class VideoFragment : Fragment() {
                 }
             }
 
-        })
+        })*/
 
     }
 
