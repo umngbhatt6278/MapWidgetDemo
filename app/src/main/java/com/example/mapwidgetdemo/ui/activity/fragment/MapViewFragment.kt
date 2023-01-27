@@ -83,10 +83,10 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
         fragmentmapBinding.btnsync.setOnClickListener {
 
 
+            getCornerBoundsPointList()
 
-
-            /* val intent = Intent(activity!!, SettingsActivity::class.java)
-             startActivity(intent)*/
+             val intent = Intent(activity!!, SettingsActivity::class.java)
+             startActivity(intent)
         }
 
 
