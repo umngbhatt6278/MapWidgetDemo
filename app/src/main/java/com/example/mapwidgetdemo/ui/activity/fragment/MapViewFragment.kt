@@ -20,6 +20,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.mapwidgetdemo.R
 import com.example.mapwidgetdemo.databinding.ActivityMapBinding
+import com.example.mapwidgetdemo.request.EditMarkerRequestModel
 import com.example.mapwidgetdemo.response.GetVideoResponse
 import com.example.mapwidgetdemo.services.ForegroundService
 import com.example.mapwidgetdemo.ui.activity.*
@@ -163,7 +164,11 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
                                 var userIndicator = MarkerOptions()
                                 if (mapvideodatalist[i].isserver) {
                                     userIndicator =
-                                        MarkerOptions().position(LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude)).draggable(true).title(mapvideodatalist[i].videoname).snippet("lat:" + mapvideodatalist[i].latitude.toString() + ", lng:" + mapvideodatalist[i].longitude).icon(BitmapDescriptorFactory.fromResource(R.drawable.server_pin))
+                                        MarkerOptions().position(LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude))
+                                            .draggable(true)
+                                            .title(mapvideodatalist[i].videoname)
+                                            .snippet("lat:" + mapvideodatalist[i].latitude.toString() + ", lng:" + mapvideodatalist[i].longitude)
+                                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.server_pin))
                                 } else {
                                     userIndicator =
                                         MarkerOptions().position(LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude)).draggable(true).title(mapvideodatalist[i].videoname).snippet("lat:" + mapvideodatalist[i].latitude.toString() + ", lng:" + mapvideodatalist[i].longitude).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_normal_pin))
@@ -179,14 +184,38 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
                                 map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 0))
                             }*/
 
-                            map.animateCamera(
-                                CameraUpdateFactory.newLatLngZoom(
-                                    LatLng(
-                                        SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE).toString().toDouble(),
-                                        SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LONGITUDE).toString().toDouble()
-                                    ), 17f
-                                )
-                            )
+
+
+                            if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE) &&
+                                SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.USER_CURRENT_LONGITUDE))
+                            {
+
+                                if(SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE).toString().isNotEmpty() &&
+                                    SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LONGITUDE).toString().isNotEmpty()) {
+                                    Log.d(
+                                        "logger", "Current Lat Long==> " + LatLng(
+                                            SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE).toString().toDouble(), SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LONGITUDE).toString().toDouble()
+                                        )
+                                    )
+
+                                    map.animateCamera(
+                                        CameraUpdateFactory.newLatLngZoom(
+                                            LatLng(
+                                                SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE).toString().toDouble(), SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LONGITUDE).toString().toDouble()
+                                            ), 17f
+                                        )
+                                    )
+                                }else{
+                                    map.animateCamera(
+                                        CameraUpdateFactory.newLatLngZoom(
+                                            LatLng(
+                                                markerList[0].position.latitude,markerList[0].position.longitude
+                                            ), 17f
+                                        )
+                                    )
+                                }
+                            }
+
 
                             SharedPreferenceUtils.saveArrayList(mapvideodatalist, AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)
 
@@ -601,16 +630,53 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
 
     }
 
+    var onDragposition = 0
     override fun onMarkerDragEnd(p0: Marker?) {
         Log.d("marker End", "End Lat Long ==>" + p0?.position.toString())
-        for (i in uploaddatalistforserver.indices) {
-            if (uploaddatalistforserver[i].videoname == p0?.title) {
-                val memo = MarkerModel(
-                    id = uploaddatalistforserver[i].id, latitude = p0?.position?.latitude?.toDouble()!!, longitude = p0?.position?.longitude?.toDouble()!!, videopath = uploaddatalistforserver[mcount].videopath, videoname = uploaddatalistforserver[mcount].videoname, isserver = true
-                )
-                Log.d("logger", "Lat/Long Update Sucessfully in Database")
-                wordViewModel.update(memo)
+        for (i in mapvideodatalist.indices) {
+            if (mapvideodatalist[i].videoname == p0?.title)
+            {
+                if(mapvideodatalist[i].isserver){
+                    loginViewModel.editMarker(EditMarkerRequestModel(id = mapvideodatalist[i].id.toString(), name = mapvideodatalist[i].videoname,
+                    lat = p0?.position?.latitude?.toDouble().toString(), long = p0?.position?.longitude?.toDouble().toString()))
+                }else {
+                    val memo = MarkerModel(
+                        id = mapvideodatalist[i].id, latitude = p0?.position?.latitude?.toDouble()!!, longitude = p0?.position?.longitude?.toDouble()!!, videopath = mapvideodatalist[i].videopath, videoname = mapvideodatalist[i].videoname, isserver = true
+                    )
+                    Log.d("logger", "Lat/Long Update Sucessfully in Database")
+                    wordViewModel.update(memo)
+                }
+                onDragposition = i
                 break
+            }
+        }
+
+        lifecycleScope.launch {
+            loginViewModel.allEventsFlow.collect { event ->
+                when (event) {
+                    is AllEvents.SuccessBool -> {
+                        when (event.code) {
+                            1 -> {
+                                val memo = MarkerModel(
+                                    id = mapvideodatalist[onDragposition].id, latitude = p0?.position?.latitude?.toDouble()!!,
+                                    longitude = p0?.position?.longitude?.toDouble()!!,
+                                    videopath = mapvideodatalist[onDragposition].videopath, videoname = mapvideodatalist[onDragposition].videoname, isserver = true
+                                )
+                                Log.d("logger", "update in database & api ")
+                                wordViewModel.update(memo)
+                                onDragposition = 0
+                            }
+                        }
+                    }
+                    else -> {
+                        val asString = event.asString(activity!!)
+                        if (asString !is Unit && asString.toString().isNotBlank()) {
+                            Toast.makeText(
+                                activity!!, asString.toString(), Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                }
             }
         }
     }

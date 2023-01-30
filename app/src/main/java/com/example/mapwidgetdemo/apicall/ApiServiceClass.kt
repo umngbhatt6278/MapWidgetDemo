@@ -1,5 +1,6 @@
 package com.app.ktorcrud.apicall
 
+import com.example.mapwidgetdemo.request.EditMarkerRequestModel
 import com.example.mapwidgetdemo.request.LoginRequestModel
 import com.example.mapwidgetdemo.request.RegisterRequestModel
 import com.example.mapwidgetdemo.request.SaveVideoModel
@@ -14,6 +15,7 @@ import com.example.mapwidgetdemo.utils.Either
  */
 interface ApiServiceClass {
     suspend fun login(loginRequestModel: LoginRequestModel): Either<String, LoginResponse>
+    suspend fun editMarker(loginRequestModel: EditMarkerRequestModel): Either<String, CommonErrorResponse>
     suspend fun forgotpassword(loginRequestModel: LoginRequestModel): Either<String, CommonErrorResponse>
     suspend fun register(loginRequestModel: RegisterRequestModel): Either<String, LoginResponse>
     suspend fun saveVideo(loginRequestModel: SaveVideoModel): Either<String, SaveVidoResponse>

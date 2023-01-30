@@ -1,10 +1,7 @@
 package com.example.mapwidgetdemo.apicall
 
 import com.app.ktorcrud.apicall.ApiServiceClass
-import com.example.mapwidgetdemo.request.LoginRequestModel
-import com.example.mapwidgetdemo.request.RegisterRequestModel
-import com.example.mapwidgetdemo.request.SaveVideoModel
-import com.example.mapwidgetdemo.request.UpdateUserRequest
+import com.example.mapwidgetdemo.request.*
 import com.example.mapwidgetdemo.response.*
 import com.example.mapwidgetdemo.utils.Either
 import com.example.mapwidgetdemo.utils.Failure
@@ -26,6 +23,8 @@ class ApiServiceImpl(private val apiService: ApiService) : ApiServiceClass {
             Either.Left(ex.errorMessage())
         }
     }
+
+
 
     override suspend fun forgotpassword(loginRequestModel: LoginRequestModel): Either<String, CommonErrorResponse> {
         return try {
@@ -60,6 +59,13 @@ class ApiServiceImpl(private val apiService: ApiService) : ApiServiceClass {
     }
 
 
+    override suspend fun editMarker(loginRequestModel: EditMarkerRequestModel): Either<String, CommonErrorResponse> {
+        return try {
+            Either.Right(apiService.editMarker(loginRequestModel))
+        } catch (ex: Exception) {
+            Either.Left(ex.errorMessage())
+        }
+    }
 
 
     private suspend fun Exception.errorMessage() = when (this) {

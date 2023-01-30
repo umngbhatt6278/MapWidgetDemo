@@ -46,18 +46,27 @@ class VideoListFragment : BaseFragment() {
                 }
             }
         })
-
-        datalist =
-            SharedPreferenceUtils.getArrayList(AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)
-
         binding.recPins.adapter = adapter
 
-        adapter.addAll(SharedPreferenceUtils.getArrayList(AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST))
+
+
+
 
         binding.imgBack.setOnClickListener {
             activity!!.finish()
         }
 
 
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)) {
+            datalist =
+                SharedPreferenceUtils.getArrayList(AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)
+            if(datalist!!.isNotEmpty()) {
+                adapter.addAll(datalist)
+            }
+        }
     }
 }

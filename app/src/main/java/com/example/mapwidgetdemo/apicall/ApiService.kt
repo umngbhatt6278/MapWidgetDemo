@@ -1,5 +1,6 @@
 package com.example.mapwidgetdemo.apicall
 
+import com.example.mapwidgetdemo.request.EditMarkerRequestModel
 import com.example.mapwidgetdemo.request.LoginRequestModel
 import com.example.mapwidgetdemo.request.RegisterRequestModel
 import com.example.mapwidgetdemo.request.SaveVideoModel
@@ -20,6 +21,12 @@ class ApiService(private val client: HttpClient) {
 
     suspend fun login(loginRequestModel: LoginRequestModel): LoginResponse = client.post {
         url(ApiRoutes.LOGIN)
+        header(HttpHeaders.ContentType, ContentType.Application.Json)
+        body = loginRequestModel
+    }
+
+    suspend fun editMarker(loginRequestModel: EditMarkerRequestModel): CommonErrorResponse = client.post {
+        url(ApiRoutes.EDIT_MARKER)
         header(HttpHeaders.ContentType, ContentType.Application.Json)
         body = loginRequestModel
     }

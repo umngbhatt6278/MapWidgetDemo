@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mapwidgetdemo.R
 import com.example.mapwidgetdemo.apicall.ApiServiceImpl
+import com.example.mapwidgetdemo.request.EditMarkerRequestModel
 import com.example.mapwidgetdemo.request.LoginRequestModel
 import com.example.mapwidgetdemo.request.RegisterRequestModel
 import com.example.mapwidgetdemo.request.SaveVideoModel
@@ -184,6 +185,28 @@ class LoginViewModel(private val apiServiceImpl: ApiServiceImpl) : ViewModel() {
                         eventsChannel.send(AllEvents.DynamicError(it))
                     }, {
                         videoListResponse.postValue(it)
+                        eventsChannel.send(AllEvents.Loading(false))
+                        eventsChannel.send(AllEvents.SuccessBool(true, 1))
+                        eventsChannel.send(AllEvents.Success(it))
+                    })
+                }
+            }
+        }
+    }
+
+    fun editMarker(editmarker:EditMarkerRequestModel) {
+
+        viewModelScope.launch {
+            when {/* !isNetworkAvailable.value!! -> {
+                    eventsChannel.send(AllEvents.StringResource(R.string.noInternet))
+                }*/
+                else -> {
+                    eventsChannel.send(AllEvents.Loading(true))
+                    apiServiceImpl.editMarker(editmarker).either({
+                        eventsChannel.send(AllEvents.Loading(false))
+                        eventsChannel.send(AllEvents.DynamicError(it))
+                    }, {
+                        commonResponse.postValue(it)
                         eventsChannel.send(AllEvents.Loading(false))
                         eventsChannel.send(AllEvents.SuccessBool(true, 1))
                         eventsChannel.send(AllEvents.Success(it))

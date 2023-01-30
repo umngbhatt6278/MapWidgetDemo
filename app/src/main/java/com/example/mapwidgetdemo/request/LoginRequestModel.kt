@@ -11,3 +11,6 @@ data class RegisterRequestModel(val name: String, val email: String, val passwor
 
 @kotlinx.serialization.Serializable
 data class SaveVideoModel(val currentLatitude: String, val currentLongitude: String, val name: String, val filepath: String)
+
+@kotlinx.serialization.Serializable
+data class EditMarkerRequestModel(val id: String, val name: String = "", val lat: String = "", val long: String = "")
