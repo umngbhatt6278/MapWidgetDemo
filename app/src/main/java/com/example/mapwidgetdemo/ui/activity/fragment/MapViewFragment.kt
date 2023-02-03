@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.*
 import android.content.*
 import android.content.pm.PackageManager
-import android.graphics.Point
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
@@ -19,6 +18,8 @@ import androidx.core.app.NotificationCompat
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.mapwidgetdemo.R
+import com.example.mapwidgetdemo.custom_camera.CameraActivity
+import com.example.mapwidgetdemo.custom_camera.VideoFragment
 import com.example.mapwidgetdemo.databinding.ActivityMapBinding
 import com.example.mapwidgetdemo.request.EditMarkerRequestModel
 import com.example.mapwidgetdemo.response.GetVideoResponse
@@ -30,7 +31,10 @@ import com.example.mapwidgetdemo.ui.activity.database.model.MarkerModel
 import com.example.mapwidgetdemo.utils.AllEvents
 import com.example.mapwidgetdemo.utils.AppConstants
 import com.example.mapwidgetdemo.utils.SharedPreferenceUtils
-import com.google.android.gms.maps.*
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
@@ -42,7 +46,7 @@ import kotlinx.coroutines.withContext
 class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener,
     GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerDragListener {
 
-    private lateinit var map: GoogleMap
+    private var map: GoogleMap? = null
     private var zoomWidth: Int? = null
     private var zoomHeight: Int? = null
     private var zoomPadding: Double? = null
@@ -63,9 +67,26 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
 
     lateinit var fragmentmapBinding: ActivityMapBinding
 
+    var mListener: OnFragmentInteractionListener? = null
+
+    private var offersFragmentOne: MapViewFragment? = null
+    fun getInstance(): MapViewFragment? {
+        if (offersFragmentOne == null) {
+            offersFragmentOne = MapViewFragment()
+        }
+        return offersFragmentOne
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         fragmentmapBinding = ActivityMapBinding.inflate(inflater, container, false)
         return fragmentmapBinding.root
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        Log.d("logger", "MapView Fragment onAttach Called")
+        mListener = context as OnFragmentInteractionListener
+        mListener?.messageFromParentFragment()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -81,15 +102,17 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
         }
 
 
-        fragmentmapBinding.btnsync.setOnClickListener {
-
-
-            getCornerBoundsPointList()
-
-             val intent = Intent(activity!!, SettingsActivity::class.java)
-             startActivity(intent)
+        fragmentmapBinding.btnsync.setOnClickListener { //            getCornerBoundsPointList()
+            val intent = Intent(activity!!, SettingsActivity::class.java)
+            startActivity(intent)
         }
 
+        fragmentmapBinding.btnRecordVideo.setOnClickListener {
+            val intent = Intent(context, CameraActivity::class.java)
+            intent.putExtra("IS_FROM_WIDGET", true)
+            intent.putExtra("IS_SCREEN", true)
+            startActivity(intent)
+        }
 
         wordViewModel.allWords.observe(this@MapViewFragment) { words -> // Update the cached copy of the words in the adapter.
             uploaddatalistforserver = words as ArrayList<MarkerModel>
@@ -97,12 +120,12 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
     }
 
 
-    fun getCornerBoundsPointList(){
+    fun getCornerBoundsPointList() {
         if (map != null) {
             var pincount = 0
             val tempListdata: ArrayList<MarkerModel> = ArrayList()
             for (i in mapvideodatalist.indices) {
-                if (map.projection.visibleRegion.latLngBounds.contains(LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude))) {
+                if (map?.projection?.visibleRegion?.latLngBounds?.contains(LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude))!!) {
                     pincount = pincount + 1
                     tempListdata.add(
                         MarkerModel(
@@ -134,7 +157,7 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
                         mapvideodatalist = ArrayList()
 
                         if (map != null) {
-                            map.clear()
+                            map?.clear()
                             markerList.clear()
                         }
 
@@ -158,67 +181,56 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
 
                                 }
                             }
-                            for (i in mapvideodatalist.indices) {
-//                                builder.include(LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude))
+                            for (i in mapvideodatalist.indices) { //                                builder.include(LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude))
                                 var marker: Marker
                                 var userIndicator = MarkerOptions()
                                 if (mapvideodatalist[i].isserver) {
                                     userIndicator =
-                                        MarkerOptions().position(LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude))
-                                            .draggable(true)
-                                            .title(mapvideodatalist[i].videoname)
-                                            .snippet("lat:" + mapvideodatalist[i].latitude.toString() + ", lng:" + mapvideodatalist[i].longitude)
-                                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.server_pin))
+                                        MarkerOptions().position(LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude)).draggable(true).title(mapvideodatalist[i].videoname).snippet("lat:" + mapvideodatalist[i].latitude.toString() + ", lng:" + mapvideodatalist[i].longitude).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_normal_pin))
                                 } else {
                                     userIndicator =
-                                        MarkerOptions().position(LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude)).draggable(true).title(mapvideodatalist[i].videoname).snippet("lat:" + mapvideodatalist[i].latitude.toString() + ", lng:" + mapvideodatalist[i].longitude).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_normal_pin))
+                                        MarkerOptions().position(LatLng(mapvideodatalist[i].latitude, mapvideodatalist[i].longitude)).draggable(true).title(mapvideodatalist[i].videoname).snippet("lat:" + mapvideodatalist[i].latitude.toString() + ", lng:" + mapvideodatalist[i].longitude).icon(BitmapDescriptorFactory.fromResource(R.drawable.server_pin))
                                 }
-                                marker = map.addMarker(userIndicator)
+                                marker = map!!.addMarker(userIndicator)
                                 markerList.add(marker)
                             }
 
-                           /* val bounds = builder.build()
-                            if (areBoundsTooSmall(bounds, 300)) {
-                                map.animateCamera(CameraUpdateFactory.newLatLngZoom(bounds.center, 17f))
-                            } else {
-                                map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 0))
-                            }*/
+                            /* val bounds = builder.build()
+                             if (areBoundsTooSmall(bounds, 300)) {
+                                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(bounds.center, 17f))
+                             } else {
+                                 map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 0))
+                             }*/
 
 
 
-                            if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE) &&
-                                SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.USER_CURRENT_LONGITUDE))
-                            {
-
-                                if(SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE).toString().isNotEmpty() &&
-                                    SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LONGITUDE).toString().isNotEmpty()) {
+                            if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE) && SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.USER_CURRENT_LONGITUDE)) {
+                                if (SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE).toString().isNotEmpty() && SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LONGITUDE).toString().isNotEmpty()) {
                                     Log.d(
                                         "logger", "Current Lat Long==> " + LatLng(
                                             SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE).toString().toDouble(), SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LONGITUDE).toString().toDouble()
                                         )
                                     )
 
-                                    map.animateCamera(
+                                    map?.animateCamera(
                                         CameraUpdateFactory.newLatLngZoom(
                                             LatLng(
                                                 SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE).toString().toDouble(), SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LONGITUDE).toString().toDouble()
                                             ), 17f
                                         )
                                     )
-                                }else{
-                                    map.animateCamera(
+                                } else {
+                                    map?.animateCamera(
                                         CameraUpdateFactory.newLatLngZoom(
                                             LatLng(
-                                                markerList[0].position.latitude,markerList[0].position.longitude
+                                                markerList[0].position.latitude, markerList[0].position.longitude
                                             ), 17f
                                         )
                                     )
                                 }
                             }
 
-
                             SharedPreferenceUtils.saveArrayList(mapvideodatalist, AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)
-
                             Log.d("logger", "Final Map Video Size on api data getting==> " + mapvideodatalist.size)
 
                         } else {
@@ -228,16 +240,16 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
                                     uploaddatalistforserver = data as ArrayList<MarkerModel>
                                     if (!data.isNullOrEmpty()) {
                                         if (map != null) {
-                                            map.clear()
+                                            map!!.clear()
                                             markerList.clear()
                                         }
                                         for (i in data.indices) {
                                             builder.include(LatLng(data[i].latitude, data[i].longitude)) //                                            createMarker(LatLng(data[i].latitude, data[i].longitude), data[i].videopath, LatLng(data[i].latitude, data[i].longitude).toString())
                                             var marker: Marker
                                             val userIndicator =
-                                                MarkerOptions().position(LatLng(data[i].latitude, data[i].longitude)).draggable(true).title(data[i].videoname).snippet("lat:" + data[i].latitude.toString() + ", lng:" + data[i].longitude).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_normal_pin))
+                                                MarkerOptions().position(LatLng(data[i].latitude, data[i].longitude)).draggable(true).title(data[i].videoname).snippet("lat:" + data[i].latitude.toString() + ", lng:" + data[i].longitude).icon(BitmapDescriptorFactory.fromResource(R.drawable.server_pin))
 
-                                            marker = map.addMarker(userIndicator)
+                                            marker = map!!.addMarker(userIndicator)
 
                                             markerList.add(marker)
                                             mapvideodatalist.add(
@@ -248,19 +260,18 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
                                         }
                                         val bounds = builder.build()
                                         if (areBoundsTooSmall(bounds, 300)) {
-                                            map.animateCamera(CameraUpdateFactory.newLatLngZoom(bounds.center, 17f))
+                                            map?.animateCamera(CameraUpdateFactory.newLatLngZoom(bounds.center, 17f))
                                         } else {
-                                            map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 20))
+                                            map?.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 20))
                                         } //                        map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, zoomLevel))
 
                                         SharedPreferenceUtils.saveArrayList(mapvideodatalist, AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST) //                                        Log.d("logger", "Final Map Video Size ==> " + mapvideodatalist.size)
                                     } else {
                                         if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE) && SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.USER_CURRENT_LONGITUDE)) {
-                                            map.animateCamera(
+                                            map?.animateCamera(
                                                 CameraUpdateFactory.newLatLngZoom(
                                                     LatLng(
-                                                        SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE).toString().toDouble(),
-                                                        SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LONGITUDE).toString().toDouble()
+                                                        SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE).toString().toDouble(), SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LONGITUDE).toString().toDouble()
                                                     ), 15f
                                                 )
                                             )
@@ -299,7 +310,7 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
 
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
-        map.uiSettings.isMapToolbarEnabled = true
+        map?.uiSettings?.isMapToolbarEnabled = true
         if (ActivityCompat.checkSelfPermission(
                 activity!!, Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
@@ -308,17 +319,18 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
         ) {
             requestPermission()
         }
-        map.isMyLocationEnabled = true
-        map.isTrafficEnabled = true
-        map.isBuildingsEnabled = true
-        map.isIndoorEnabled = true
-        map.uiSettings.isIndoorLevelPickerEnabled = true
-        map.uiSettings.isCompassEnabled = true //        map.mapType = GoogleMap.MAP_TYPE_SATELLITE
-        map.setMapStyle(MapStyleOptions.loadRawResourceStyle(activity!!, R.raw.map_style))
-        map.uiSettings.setAllGesturesEnabled(true)
-        map.setOnMarkerClickListener(this)
-        map.setOnMapLongClickListener(this)
-        map.setOnMarkerDragListener(this)
+        map!!.isMyLocationEnabled = true
+        map!!.isTrafficEnabled = true
+        map!!.isBuildingsEnabled = true
+        map!!.isIndoorEnabled = true
+        map!!.uiSettings.isIndoorLevelPickerEnabled = true
+        map!!.uiSettings.isCompassEnabled =
+            true //        map.mapType = GoogleMap.MAP_TYPE_SATELLITE
+        map!!.setMapStyle(MapStyleOptions.loadRawResourceStyle(activity!!, R.raw.map_style))
+        map!!.uiSettings.setAllGesturesEnabled(true)
+        map!!.setOnMarkerClickListener(this)
+        map!!.setOnMapLongClickListener(this)
+        map!!.setOnMarkerDragListener(this)
     }
 
     private fun getdata() {
@@ -334,7 +346,7 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
                         uploaddatalistforserver = data as ArrayList<MarkerModel>
                         if (!data.isNullOrEmpty()) {
                             if (map != null) {
-                                map.clear()
+                                map!!.clear()
                                 markerList.clear()
                             }
                             val builder = LatLngBounds.Builder()
@@ -342,9 +354,9 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
                                 builder.include(LatLng(data[i].latitude, data[i].longitude))
                                 var marker: Marker
                                 val userIndicator =
-                                    MarkerOptions().position(LatLng(data[i].latitude, data[i].longitude)).title(data[i].videoname).draggable(true).snippet("lat:" + data[i].latitude.toString() + ", lng:" + data[i].longitude).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_normal_pin))
+                                    MarkerOptions().position(LatLng(data[i].latitude, data[i].longitude)).title(data[i].videoname).draggable(true).snippet("lat:" + data[i].latitude.toString() + ", lng:" + data[i].longitude).icon(BitmapDescriptorFactory.fromResource(R.drawable.server_pin))
 
-                                marker = map.addMarker(userIndicator)
+                                marker = map!!.addMarker(userIndicator)
 
                                 markerList.add(marker)
 
@@ -354,11 +366,15 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
                             }
                             val bounds = builder.build()
                             if (areBoundsTooSmall(bounds, 300)) {
-                                map.animateCamera(CameraUpdateFactory.newLatLngZoom(bounds.center, 17f))
+                                map?.animateCamera(CameraUpdateFactory.newLatLngZoom(bounds.center, 17f))
                             } else {
-                                map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 20))
+                                map?.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 20))
                             }
                             SharedPreferenceUtils.saveArrayList(uploaddatalistforserver, AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)
+
+                            if (map != null) {
+                                getCornerBoundsPointList()
+                            }
 
                         } else {
 
@@ -381,7 +397,7 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
                     uploaddatalistforserver = data as ArrayList<MarkerModel>
                     if (!data.isNullOrEmpty()) {
                         if (map != null) {
-                            map.clear()
+                            map!!.clear()
                             markerList.clear()
                         }
                         for (i in data.indices) {
@@ -391,22 +407,22 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
 
                             var marker: Marker
                             val userIndicator =
-                                MarkerOptions().position(LatLng(data[i].latitude, data[i].longitude)).title(data[i].videoname).draggable(true).snippet("lat:" + data[i].latitude.toString() + ", lng:" + data[i].longitude).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_normal_pin))
+                                MarkerOptions().position(LatLng(data[i].latitude, data[i].longitude)).title(data[i].videoname).draggable(true).snippet("lat:" + data[i].latitude.toString() + ", lng:" + data[i].longitude).icon(BitmapDescriptorFactory.fromResource(R.drawable.server_pin))
 
-                            marker = map.addMarker(userIndicator)
+                            marker = map!!.addMarker(userIndicator)
 
                             markerList.add(marker)
                         }
                         val bounds = builder.build()
                         if (areBoundsTooSmall(bounds, 300)) {
-                            map.animateCamera(CameraUpdateFactory.newLatLngZoom(bounds.center, 17f))
+                            map?.animateCamera(CameraUpdateFactory.newLatLngZoom(bounds.center, 17f))
                         } else {
-                            map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 20))
+                            map?.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 20))
                         } //                        map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, zoomLevel))      map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, zoomLevel))
 
                     } else {
                         if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE) && SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.USER_CURRENT_LONGITUDE)) {
-                            map.animateCamera(
+                            map?.animateCamera(
                                 CameraUpdateFactory.newLatLngZoom(
                                     LatLng(
                                         SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE).toString().toDouble(), SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE).toString().toDouble()
@@ -418,6 +434,10 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
 
                     SharedPreferenceUtils.saveArrayList(uploaddatalistforserver, AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST) //                    Log.d("logger", "Final Map Video Size ==> " + mapvideodatalist.size)
 
+                    if (map != null) {
+                        getCornerBoundsPointList()
+                    }
+
                     if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER)) {
                         if (SharedPreferenceUtils.preferenceGetBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, false)) {
                             startService()
@@ -426,6 +446,8 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
                 }
             }
         }
+
+
     }
 
     open fun areBoundsTooSmall(bounds: LatLngBounds, minDistanceInMeter: Int): Boolean {
@@ -438,8 +460,6 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
         super.onResume()
         Log.d("logger", "Token ==> " + SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.F_TOKEN).toString())
         getdata()
-
-
     }
 
     override fun onDestroy() {
@@ -448,10 +468,18 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
 
     }
 
+    override fun onPause() {
+        super.onPause()
+        Log.d("logger", "onPause() Called")
+        getCornerBoundsPointList()
+    }
+
     override fun onDetach() {
         super.onDetach()
+        Log.d("logger", "onDetach() Called")
 
     }
+
 
     open fun startService() {
         val serviceIntent = Intent(activity!!, ForegroundService::class.java)
@@ -471,7 +499,7 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
                 activity!!, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE
             )
             val notification: Notification =
-                NotificationCompat.Builder(activity!!, ForegroundService.CHANNEL_ID).setContentTitle(getString(R.string.app_name)).setContentText("Video Uploading On Server").setSmallIcon(R.drawable.ic_normal_pin).setContentIntent(pendingIntent).build()
+                NotificationCompat.Builder(activity!!, ForegroundService.CHANNEL_ID).setContentTitle(getString(R.string.app_name)).setContentText("Video Uploading On Server").setSmallIcon(R.drawable.server_pin).setContentIntent(pendingIntent).build()
             binder.service.startForeground(1, notification)
         }
 
@@ -572,7 +600,7 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
     }
 
     protected open fun createMarker(latlang: LatLng, title: String?, snippet: String?): Marker? {
-        return map.addMarker(
+        return map?.addMarker(
             MarkerOptions().position(latlang).title(title)
         )
     }
@@ -604,6 +632,7 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
         }
     }
 
+
     open fun showMessageOKCancel(message: String, okListener: DialogInterface.OnClickListener) {
         AlertDialog.Builder(activity!!).setMessage(message).setPositiveButton("OK", okListener).setNegativeButton("Cancel", null).create().show()
     }
@@ -634,12 +663,14 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
     override fun onMarkerDragEnd(p0: Marker?) {
         Log.d("marker End", "End Lat Long ==>" + p0?.position.toString())
         for (i in mapvideodatalist.indices) {
-            if (mapvideodatalist[i].videoname == p0?.title)
-            {
-                if(mapvideodatalist[i].isserver){
-                    loginViewModel.editMarker(EditMarkerRequestModel(id = mapvideodatalist[i].id.toString(), name = mapvideodatalist[i].videoname,
-                    lat = p0?.position?.latitude?.toDouble().toString(), long = p0?.position?.longitude?.toDouble().toString()))
-                }else {
+            if (mapvideodatalist[i].videoname == p0?.title) {
+                if (mapvideodatalist[i].isserver) {
+                    loginViewModel.editMarker(
+                        EditMarkerRequestModel(
+                            id = mapvideodatalist[i].id.toString(), name = mapvideodatalist[i].videoname, lat = p0?.position?.latitude?.toDouble().toString(), long = p0?.position?.longitude?.toDouble().toString()
+                        )
+                    )
+                } else {
                     val memo = MarkerModel(
                         id = mapvideodatalist[i].id, latitude = p0?.position?.latitude?.toDouble()!!, longitude = p0?.position?.longitude?.toDouble()!!, videopath = mapvideodatalist[i].videopath, videoname = mapvideodatalist[i].videoname, isserver = true
                     )
@@ -658,9 +689,7 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
                         when (event.code) {
                             1 -> {
                                 val memo = MarkerModel(
-                                    id = mapvideodatalist[onDragposition].id, latitude = p0?.position?.latitude?.toDouble()!!,
-                                    longitude = p0?.position?.longitude?.toDouble()!!,
-                                    videopath = mapvideodatalist[onDragposition].videopath, videoname = mapvideodatalist[onDragposition].videoname, isserver = true
+                                    id = mapvideodatalist[onDragposition].id, latitude = p0?.position?.latitude?.toDouble()!!, longitude = p0?.position?.longitude?.toDouble()!!, videopath = mapvideodatalist[onDragposition].videopath, videoname = mapvideodatalist[onDragposition].videoname, isserver = true
                                 )
                                 Log.d("logger", "update in database & api ")
                                 wordViewModel.update(memo)
@@ -679,6 +708,11 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
                 }
             }
         }
+    }
+
+    interface OnFragmentInteractionListener {
+        // TODO: Update argument type and name
+        fun messageFromParentFragment()
     }
 }
 

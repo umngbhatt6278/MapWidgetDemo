@@ -43,6 +43,7 @@ internal fun updateAppWidget(
         flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
     }
     intent.putExtra("IS_FROM_WIDGET", true)
+    intent.putExtra("IS_SCREEN", false)
     val pendingIntent = PendingIntent.getActivity(context, 0, intent, FLAG_IMMUTABLE)
     // Construct the RemoteViews object
     val views = RemoteViews(context.packageName, R.layout.record_video_widget)

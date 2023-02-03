@@ -30,7 +30,6 @@ import android.widget.SeekBar.OnSeekBarChangeListener
 import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import com.example.mapwidgetdemo.R
 import com.example.mapwidgetdemo.custom_camera.constants.Constants
 import com.example.mapwidgetdemo.custom_camera.util.GLUtil
@@ -43,9 +42,6 @@ import com.example.mapwidgetdemo.ui.activity.database.MarkerViewModel
 import com.example.mapwidgetdemo.ui.activity.database.WordViewModelFactory
 import com.example.mapwidgetdemo.ui.activity.database.model.MarkerModel
 import com.example.mapwidgetdemo.utils.*
-import com.example.mapwidgetdemo.viewmodel.LoginViewModel
-import kotlinx.coroutines.launch
-import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 import java.io.IOException
 import java.util.*
@@ -1019,13 +1015,18 @@ class VideoFragment : Fragment() {
 
         wordViewModel.insert(
             MarkerModel(
-                latitude = currentLatitude, longitude = currentLongitude, videopath = cameraView!!.mediaPath.toString(),
-                videoname = File(cameraView!!.mediaPath).name, isserver = false
+                latitude = currentLatitude, longitude = currentLongitude, videopath = cameraView!!.mediaPath.toString(), videoname = File(cameraView!!.mediaPath).name, isserver = false
             )
         )
         showRecordSaved()
         setCameraClose()
-        requireActivity().finishAffinity()
+
+
+        if (mainextras?.getBoolean("IS_SCREEN")!!) {
+            requireActivity().finish()
+        } else {
+            requireActivity().finishAffinity()
+        }
 
         /*DialogUtils.dialogChildNameOrRewardMsg(requireActivity(), getString(R.string.app_name), "Enter Video Name", AppConstants.DialogCodes.DIALOG_CLAIM_REWARD, object :
             DialogClickInterface {
@@ -1200,8 +1201,10 @@ class VideoFragment : Fragment() {
     companion object {
         const val TAG = "VideoFragment"
         private var fragment: VideoFragment? = null
-        fun newInstance(): VideoFragment? {
+        var mainextras: Bundle? = null
+        fun newInstance(extras: Bundle?): VideoFragment? {
             Log.d(TAG, "NEW INSTANCE")
+            mainextras = extras
             if (fragment == null) {
                 fragment = VideoFragment()
             }

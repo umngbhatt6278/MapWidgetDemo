@@ -14,6 +14,9 @@
         android:layout_height="match_parent"
         tools:context=".ui.activity.VideoActivity">
 
+
+
+
         <com.google.android.exoplayer2.ui.StyledPlayerView
             android:id="@+id/playerView"
             android:layout_width="match_parent"
@@ -31,6 +34,21 @@
             argType:use_artwork="true"
             argType:use_controller="true"
             argType:use_sensor_rotation="true" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/txtVideoName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/headTextTopMargin"
+            android:layout_marginStart="@dimen/headTextLeftMargin"
+            android:layout_marginTop="@dimen/headTextTopMargin"
+            android:layout_weight="1"
+            android:text="Video Name"
+            android:textColor="@color/white"
+            android:textSize="@dimen/settingsMainText"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

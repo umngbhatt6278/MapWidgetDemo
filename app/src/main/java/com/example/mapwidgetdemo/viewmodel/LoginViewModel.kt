@@ -201,7 +201,7 @@ class LoginViewModel(private val apiServiceImpl: ApiServiceImpl) : ViewModel() {
                     eventsChannel.send(AllEvents.StringResource(R.string.noInternet))
                 }*/
                 else -> {
-                    eventsChannel.send(AllEvents.Loading(true))
+                    eventsChannel.send(AllEvents.Loading(false))
                     apiServiceImpl.editMarker(editmarker).either({
                         eventsChannel.send(AllEvents.Loading(false))
                         eventsChannel.send(AllEvents.DynamicError(it))
@@ -209,7 +209,7 @@ class LoginViewModel(private val apiServiceImpl: ApiServiceImpl) : ViewModel() {
                         commonResponse.postValue(it)
                         eventsChannel.send(AllEvents.Loading(false))
                         eventsChannel.send(AllEvents.SuccessBool(true, 1))
-                        eventsChannel.send(AllEvents.Success(it))
+//                        eventsChannel.send(AllEvents.Success(it))
                     })
                 }
             }

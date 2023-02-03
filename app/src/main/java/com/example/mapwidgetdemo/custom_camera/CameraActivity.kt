@@ -79,8 +79,6 @@ class CameraActivity : BaseActivity(), PermissionInterface, PhotoPermission, Swi
         }
         setPinchZoomScaleListener(if (videoFragment != null) videoFragment else null, if (photoFragment != null) photoFragment else null)
 
-
-
     }
 
 
@@ -209,7 +207,7 @@ class CameraActivity : BaseActivity(), PermissionInterface, PhotoPermission, Swi
     fun showVideoFragment() {
         if (videoFragment == null) {
             if (VERBOSE) Log.d(TAG, "creating videofragment")
-            videoFragment = VideoFragment.newInstance()
+            videoFragment = VideoFragment.newInstance(intent.extras)
             videoFragment!!.applicationContext = applicationContext
         }
         val fragmentTransaction = supportFragmentManager.beginTransaction()

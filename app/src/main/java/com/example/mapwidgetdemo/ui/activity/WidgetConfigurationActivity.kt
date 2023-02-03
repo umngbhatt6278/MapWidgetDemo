@@ -31,6 +31,7 @@ class WidgetConfigurationActivity : AppCompatActivity() {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
         intent.putExtra("IS_FROM_WIDGET", true)
+        intent.putExtra("IS_SCREEN", false)
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, FLAG_IMMUTABLE)
         // Construct the RemoteViews object
         val views = RemoteViews(packageName, R.layout.record_video_widget)

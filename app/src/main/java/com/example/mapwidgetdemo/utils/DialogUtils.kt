@@ -90,6 +90,7 @@ object DialogUtils {
                 } else {
                     Toast.makeText(context, "Please enter Video Name", Toast.LENGTH_SHORT).show()
                 }
+                dialog.dismiss()
             }
         }
         dialog.show()

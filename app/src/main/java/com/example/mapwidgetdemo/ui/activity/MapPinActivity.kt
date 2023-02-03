@@ -45,9 +45,7 @@ class MapPinActivity : BaseActivity() {
 
         adapter.addAll(SharedPreferenceUtils.getArrayList(AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST))
 
-        binding.imgBack.setOnClickListener {
-            finish()
-        }
+
 
 
     }

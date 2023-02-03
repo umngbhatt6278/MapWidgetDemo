@@ -24,11 +24,19 @@
 
 
         <androidx.viewpager.widget.ViewPager
+            android:visibility="gone"
             android:layout_below="@+id/tabs"
             android:id="@+id/view_pager"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+
+        <FrameLayout
+            android:id="@+id/frame"
+            android:layout_below="@+id/tabs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
 
 
     </RelativeLayout>
