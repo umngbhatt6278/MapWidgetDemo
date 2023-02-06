@@ -4,9 +4,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.StrictMode
 import android.os.StrictMode.VmPolicy
-import android.util.Log
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.mapwidgetdemo.R
 import com.example.mapwidgetdemo.databinding.ActivityVideoBinding
@@ -43,7 +41,8 @@ class VideoActivity : BaseActivity(), DialogClickInterface {
 
         datalist = ArrayList()
         if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)) {
-            datalist = SharedPreferenceUtils.getArrayList(AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)
+            datalist =
+                SharedPreferenceUtils.getArrayList(AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)
 
         }
         setContentView(binding.root)
@@ -55,22 +54,24 @@ class VideoActivity : BaseActivity(), DialogClickInterface {
 
         exoPlayer = ExoPlayer.Builder(this).build()
 
-        if (!datalist!![mcount]!!.videopath.contains("https")) {
-            val dataSourceFactory: DataSource.Factory =
-                DefaultDataSourceFactory(this, Util.getUserAgent(this, "com.example.mapwidgetdemo"))
-            val mediaItem = MediaItem.fromUri(Uri.parse(datalist!![mcount]!!.videopath))
-            val mediaSource =
-                ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
-            exoPlayer?.apply {
-                setMediaSource(mediaSource)
-                prepare()
-            }
-        } else {
-            val mediaItem =
-                MediaItem.Builder().setUri(datalist!![mcount]!!.videopath.replace("https", "http")).build()
-            exoPlayer?.apply {
-                setMediaItem(mediaItem)
-                prepare()
+        if (mcount < datalist!!.size) {
+            if (!datalist!![mcount]!!.videopath.contains("https")) {
+                val dataSourceFactory: DataSource.Factory =
+                    DefaultDataSourceFactory(this, Util.getUserAgent(this, "com.example.mapwidgetdemo"))
+                val mediaItem = MediaItem.fromUri(Uri.parse(datalist!![mcount]!!.videopath))
+                val mediaSource =
+                    ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
+                exoPlayer?.apply {
+                    setMediaSource(mediaSource)
+                    prepare()
+                }
+            } else {
+                val mediaItem =
+                    MediaItem.Builder().setUri(datalist!![mcount]!!.videopath.replace("https", "http")).build()
+                exoPlayer?.apply {
+                    setMediaItem(mediaItem)
+                    prepare()
+                }
             }
         }
 
@@ -90,6 +91,12 @@ class VideoActivity : BaseActivity(), DialogClickInterface {
                         preparePlayer()
                     }
 
+                    Player.STATE_BUFFERING -> {
+
+                    }
+                    Player.STATE_IDLE -> {
+
+                    }
                 }
             }
         })
@@ -98,8 +105,7 @@ class VideoActivity : BaseActivity(), DialogClickInterface {
             if (exoPlayer?.isPlaying!!) {
                 pausePlayer()
             }
-            DialogUtils.dialogChildNameOrRewardMsg(this, getString(R.string.app_name),
-                "Enter Video Name", AppConstants.DialogCodes.DIALOG_CLAIM_REWARD, object :
+            DialogUtils.dialogChildNameOrRewardMsg(this, getString(R.string.app_name), "Enter Video Name", AppConstants.DialogCodes.DIALOG_CLAIM_REWARD, object :
                 DialogClickInterface {
                 override fun onClick(code: Int, msg: String) {
                     AppConstants.DialogCodes.apply {
@@ -108,7 +114,7 @@ class VideoActivity : BaseActivity(), DialogClickInterface {
                                 tempVideoName = msg
                                 loginViewModel.editMarker(
                                     EditMarkerRequestModel(
-                                        id = datalist!![mcount]!!.id.toString(), name = msg.toString(), lat = datalist!![mcount]!!.latitude?.toDouble().toString(), long = datalist!![mcount]!!.longitude?.toDouble().toString()
+                                        id = datalist!![mcount]!!.id.toString(), name = msg.toString(), lat = datalist!![mcount]!!.latitude.toString(), long = datalist!![mcount]!!.longitude.toDouble().toString()
                                     )
                                 )
                             }
@@ -126,12 +132,7 @@ class VideoActivity : BaseActivity(), DialogClickInterface {
                                 1 -> {
                                     binding.txtVideoName.text = tempVideoName
                                     var model = MarkerModel(
-                                        id = datalist!![mcount]!!.id,
-                                        videoname = tempVideoName,
-                                        latitude = datalist!![mcount]!!.latitude,
-                                        longitude = datalist!![mcount]!!.longitude,
-                                        isserver = datalist!![mcount]!!.isserver,
-                                        videopath = datalist!![mcount]!!.videopath
+                                        id = datalist!![mcount]!!.id, videoname = tempVideoName, latitude = datalist!![mcount]!!.latitude, longitude = datalist!![mcount]!!.longitude, isserver = datalist!![mcount]!!.isserver, videopath = datalist!![mcount]!!.videopath
                                     )
                                 }
                             }
@@ -150,8 +151,6 @@ class VideoActivity : BaseActivity(), DialogClickInterface {
         }
 
 
-
-
     }
 
 
@@ -164,7 +163,7 @@ class VideoActivity : BaseActivity(), DialogClickInterface {
         }
     }
 
-    private fun pausePlayer(){
+    private fun pausePlayer() {
         exoPlayer?.let { player ->
             player.pause()
         }

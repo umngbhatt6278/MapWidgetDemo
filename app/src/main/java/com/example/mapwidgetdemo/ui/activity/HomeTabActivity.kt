@@ -78,8 +78,8 @@ class HomeTabActivity : AppCompatActivity(), MapViewFragment.OnFragmentInteracti
         fragTransaction.commit()
     }
 
-    @Suppress("DEPRECATION")
-    internal class MyAdapter(var context: Context, fm: FragmentManager, var totalTabs: Int) :
+
+    private class MyAdapter(var context: Context, fm: FragmentManager, var totalTabs: Int) :
         FragmentPagerAdapter(fm) {
         override fun getItem(position: Int): Fragment {
             return when (position) {

@@ -353,4 +353,6 @@
     <string name="title_activity_tab">TabActivity</string>
     <string name="tab_text_1">MAP</string>
     <string name="tab_text_2">LIST</string>
+    <string name="remove_from_device">Remove From Device</string>
+    <string name="guest_mode">GUEST MODE</string>
 </resources>
