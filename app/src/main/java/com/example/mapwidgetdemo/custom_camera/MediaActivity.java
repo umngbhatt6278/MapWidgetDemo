@@ -665,7 +665,7 @@ public class MediaActivity extends AppCompatActivity implements ViewPager.OnPage
             medias = MediaUtil.getMediaList(getApplicationContext(), fromGallery);
             if(medias != null) {
                 runOnUiThread(() -> {
-                    if(VERBOSE)Log.d(TAG, "BEFORE notifyDataSetChanged");
+                    if(VERBOSE)Log.d(TAG, "BEFORE notifyDataS   etChanged");
                     mPagerAdapter.notifyDataSetChanged();
                     if(VERBOSE)Log.d(TAG, "AFTER notifyDataSetChanged");
                     taskAlert.dismiss();

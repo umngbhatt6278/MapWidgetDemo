@@ -12,13 +12,13 @@
         >
     </FrameLayout>
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:id="@+id/settingsBar"
-        android:background="@color/settingsBarColor"
-        >
+        android:background="@color/settingsBarColor">
 
         <ImageButton
             android:id="@+id/flashOn"

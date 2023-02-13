@@ -1136,7 +1136,7 @@ class VideoFragment : Fragment() {
         startActivity(mediaIntent)
     }
 
-    private fun setCameraClose() { //Set this if you want to continue when the launcher activity resumes.
+    open fun setCameraClose() { //Set this if you want to continue when the launcher activity resumes.
         val editor = sharedPreferences!!.edit()
         editor.putBoolean("startCamera", false)
         editor.commit()

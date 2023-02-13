@@ -24,6 +24,7 @@ class SettingsActivity : BaseActivity(), DialogClickInterface {
     private var isGuest: Boolean = true
     private var isremoveFromDevice: Boolean = false
     private var removeFromServerData: ArrayList<MarkerModel> = ArrayList()
+    private var isFromButtonClicked = false
 
     private val wordViewModel: MarkerViewModel by viewModels {
         WordViewModelFactory((application as MainApplication).repository)
@@ -68,10 +69,16 @@ class SettingsActivity : BaseActivity(), DialogClickInterface {
         }
 
         binding.texLogout.setOnClickListener {
-            SharedPreferenceUtils.clearLoginInfo()
-            binding.SwitchUpload.isChecked = false
-            setUserRole()
-            binding.imgBack.performClick()
+            if (binding.texLogout.text.toString().equals(getString(R.string.logout), true)) {
+                SharedPreferenceUtils.clearLoginInfo()
+                binding.SwitchUpload.isChecked = false
+                setUserRole()
+                binding.imgBack.performClick()
+            } else {
+                isFromButtonClicked = true
+                val intent = Intent(this@SettingsActivity, LoginActivity::class.java)
+                resultLauncher.launch(intent)
+            }
         }
 
         binding.imgBack.setOnClickListener {
@@ -109,7 +116,7 @@ class SettingsActivity : BaseActivity(), DialogClickInterface {
                 "Welcome Back, " + SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.NAME)
 
             binding.SwitchUpload.isChecked = !isGuest
-            binding.texLogout.isVisible = true
+            binding.texLogout.text = getString(R.string.logout)
 
             if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.IS_REMOVE_FROM_DEVICE)) {
                 isremoveFromDevice =
@@ -140,7 +147,7 @@ class SettingsActivity : BaseActivity(), DialogClickInterface {
             binding.SwitchRemoveFromDevice.isClickable = false
             binding.SwitchRemoveFromDevice.isChecked = false
             binding.SwitchRemoveFromDevice.isFocusable = false
-            binding.texLogout.isVisible = false
+            binding.texLogout.text = getString(R.string.str_login)
         }
 
 
@@ -158,11 +165,12 @@ class SettingsActivity : BaseActivity(), DialogClickInterface {
     private var resultLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
-                SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, true)
-                binding.SwitchUpload.isChecked = true
+                if (!isFromButtonClicked) {
+                    SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, true)
+                    binding.SwitchUpload.isChecked = true
+                }
                 setUserRole()
-            }
-            else{
+            } else {
                 SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, false)
                 binding.SwitchUpload.isChecked = false
             }
@@ -173,6 +181,7 @@ class SettingsActivity : BaseActivity(), DialogClickInterface {
             when (code) {
                 DIALOG_SIGN_OUT -> {
                     if (msg == "") {
+                        isFromButtonClicked = false
                         val intent = Intent(this@SettingsActivity, LoginActivity::class.java)
                         resultLauncher.launch(intent)
                     } else {

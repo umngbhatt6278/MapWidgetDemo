@@ -137,9 +137,11 @@ class CameraActivity : BaseActivity(), PermissionInterface, PhotoPermission, Swi
         return sharedPreferences!!.getString(Constants.SD_CARD_PATH, "")
     }
 
-    fun goToSettings(view: View?) {/* Intent settingsIntent = new Intent(this, SettingsActivity.class);
+    fun goToSettings(view: View?) {
+    /* Intent settingsIntent = new Intent(this, SettingsActivity.class);
         startActivity(settingsIntent);
         overridePendingTransition(R.anim.slide_from_right,R.anim.slide_to_left);*/
+        VideoFragment().setCameraClose()
     }
 
     fun openBrightnessPopup(view: View?) {

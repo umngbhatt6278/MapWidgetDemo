@@ -117,6 +117,8 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
         wordViewModel.allWords.observe(this@MapViewFragment) { words -> // Update the cached copy of the words in the adapter.
             uploaddatalistforserver = words as ArrayList<MarkerModel>
         }
+
+        getdata()
     }
 
 
@@ -160,6 +162,8 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
                             map?.clear()
                             markerList.clear()
                         }
+
+                        markerList = ArrayList()
 
                         val builder = LatLngBounds.Builder()
 
@@ -324,8 +328,7 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
         map!!.isBuildingsEnabled = true
         map!!.isIndoorEnabled = true
         map!!.uiSettings.isIndoorLevelPickerEnabled = true
-        map!!.uiSettings.isCompassEnabled =
-            true //        map.mapType = GoogleMap.MAP_TYPE_SATELLITE
+        map!!.uiSettings.isCompassEnabled = true //        map.mapType = GoogleMap.MAP_TYPE_SATELLITE
         map!!.setMapStyle(MapStyleOptions.loadRawResourceStyle(activity!!, R.raw.map_style))
         map!!.uiSettings.setAllGesturesEnabled(true)
         map!!.setOnMarkerClickListener(this)
@@ -344,6 +347,7 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
                     words.let {
                         val data = it
                         uploaddatalistforserver = data as ArrayList<MarkerModel>
+                        mapvideodatalist = ArrayList()
                         if (!data.isNullOrEmpty()) {
                             if (map != null) {
                                 map!!.clear()
@@ -360,6 +364,12 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
 
                                 markerList.add(marker)
 
+                                mapvideodatalist.add(
+                                    MarkerModel(
+                                        data[i].id, data[i].latitude, data[i].longitude, data[i].videopath, data[i].videoname, data[i].isserver
+                                    )
+                                )
+
                                 /*createMarker(
                                     LatLng(data[i].latitude, data[i].longitude), data[i].videopath, LatLng(data[i].latitude, data[i].longitude).toString()
                                 )*/
@@ -371,10 +381,6 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
                                 map?.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 20))
                             }
                             SharedPreferenceUtils.saveArrayList(uploaddatalistforserver, AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST)
-
-                            if (map != null) {
-                                getCornerBoundsPointList()
-                            }
 
                         } else {
 
@@ -390,11 +396,11 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
             }
         } else {
             Log.d("logger", "when user in guest mode")
-
             wordViewModel.allWords.observe(activity!!) { words -> // Update the cached copy of the words in the adapter.
                 words.let {
                     val data = it
                     uploaddatalistforserver = data as ArrayList<MarkerModel>
+                    mapvideodatalist = ArrayList()
                     if (!data.isNullOrEmpty()) {
                         if (map != null) {
                             map!!.clear()
@@ -412,6 +418,11 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
                             marker = map!!.addMarker(userIndicator)
 
                             markerList.add(marker)
+                            mapvideodatalist.add(
+                                MarkerModel(
+                                    data[i].id, data[i].latitude, data[i].longitude, data[i].videopath, data[i].videoname, data[i].isserver
+                                )
+                            )
                         }
                         val bounds = builder.build()
                         if (areBoundsTooSmall(bounds, 300)) {
@@ -434,10 +445,6 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
 
                     SharedPreferenceUtils.saveArrayList(uploaddatalistforserver, AppConstants.SharedPreferenceKeys.PREF_MAP_VIDEO_LIST) //                    Log.d("logger", "Final Map Video Size ==> " + mapvideodatalist.size)
 
-                    if (map != null) {
-                        getCornerBoundsPointList()
-                    }
-
                     if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER)) {
                         if (SharedPreferenceUtils.preferenceGetBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, false)) {
                             startService()
@@ -459,7 +466,7 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
     override fun onResume() {
         super.onResume()
         Log.d("logger", "Token ==> " + SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.F_TOKEN).toString())
-        getdata()
+//        getdata()
     }
 
     override fun onDestroy() {
@@ -672,7 +679,7 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
                     )
                 } else {
                     val memo = MarkerModel(
-                        id = mapvideodatalist[i].id, latitude = p0?.position?.latitude?.toDouble()!!, longitude = p0?.position?.longitude?.toDouble()!!, videopath = mapvideodatalist[i].videopath, videoname = mapvideodatalist[i].videoname, isserver = true
+                        id = mapvideodatalist[i].id, latitude = p0.position?.latitude?.toDouble()!!, longitude = p0.position?.longitude?.toDouble()!!, videopath = mapvideodatalist[i].videopath, videoname = mapvideodatalist[i].videoname, isserver = true
                     )
                     Log.d("logger", "Lat/Long Update Sucessfully in Database")
                     wordViewModel.update(memo)
