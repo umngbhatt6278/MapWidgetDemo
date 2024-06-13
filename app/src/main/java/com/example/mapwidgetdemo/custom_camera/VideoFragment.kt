@@ -3,6 +3,7 @@ package com.example.mapwidgetdemo.custom_camera
 import android.Manifest
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
+import android.app.AlertDialog
 import android.app.Dialog
 import android.appwidget.AppWidgetManager
 import android.content.*
@@ -182,58 +183,74 @@ class VideoFragment : Fragment() {
 
 
     private fun getLocation() {
-        locationManager =
-            requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        val criteria = Criteria()
-        criteria.accuracy = Criteria.ACCURACY_FINE
-        criteria.isAltitudeRequired = true
-        criteria.isBearingRequired = true
-        criteria.isCostAllowed = true
-        criteria.verticalAccuracy = Criteria.ACCURACY_HIGH
-        criteria.horizontalAccuracy = Criteria.ACCURACY_HIGH
+        locationManager = requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        if (locationManager!!.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            val criteria = Criteria()
+            criteria.accuracy = Criteria.ACCURACY_FINE
+            criteria.isAltitudeRequired = true
+            criteria.isBearingRequired = true
+            criteria.isCostAllowed = true
+            criteria.verticalAccuracy = Criteria.ACCURACY_HIGH
+            criteria.horizontalAccuracy = Criteria.ACCURACY_HIGH
 
-        val providers = locationManager!!.getProviders(criteria, true)
-        for (provider in providers) {
-            if (!provider.contains("gps")) { // if gps is disabled
-                val poke = Intent()
-                poke.setClassName(
-                    "com.android.settings", "com.android.settings.widget.SettingsAppWidgetProvider"
-                )
-                poke.addCategory(Intent.CATEGORY_ALTERNATIVE)
-                poke.data = Uri.parse("3")
-                requireActivity().sendBroadcast(poke)
-            } // Get the location from the given provider
-            if (ActivityCompat.checkSelfPermission(
-                    requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                    requireActivity(), Manifest.permission.ACCESS_COARSE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                requestPermission()
-            } else {
-                locationManager!!.requestLocationUpdates(
-                    LocationManager.NETWORK_PROVIDER, minTime, minDistance, locationListener
-                )
+            val providers = locationManager!!.getProviders(criteria, true)
+            for (provider in providers) {
+                if (!provider.contains("gps")) { // if gps is disabled
+                    val poke = Intent()
+                    poke.setClassName(
+                        "com.android.settings", "com.android.settings.widget.SettingsAppWidgetProvider"
+                    )
+                    poke.addCategory(Intent.CATEGORY_ALTERNATIVE)
+                    poke.data = Uri.parse("3")
+                    requireActivity().sendBroadcast(poke)
+                } // Get the location from the given provider
+                if (ActivityCompat.checkSelfPermission(
+                        requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                        requireActivity(), Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    requestPermission()
+                } else {
+                    locationManager!!.requestLocationUpdates(
+                        LocationManager.NETWORK_PROVIDER, minTime, minDistance, locationListener
+                    )
+                }
             }
+
+            var handler = Handler(Looper.myLooper()!!)
+            handler.postDelayed(Runnable {
+                kotlin.run {
+                    startRecord?.performClick()
+                }
+            }, 500)
+        }else{
+            showGPSDisabledAlertToUser();
         }
+    }
 
-        var handler = Handler(Looper.myLooper()!!)
-        handler.postDelayed(Runnable {
-            kotlin.run {
-                startRecord?.performClick()
-            }
-        }, 500)
+    private fun showGPSDisabledAlertToUser() {
+        val alertDialogBuilder: AlertDialog.Builder = AlertDialog.Builder(requireContext())
+        alertDialogBuilder.setMessage("GPS is disabled in your device. Would you like to enable it?").setCancelable(false).setPositiveButton("Goto Settings Page To Enable GPS", DialogInterface.OnClickListener { dialog, id ->
+            val callGPSSettingIntent = Intent(
+                Settings.ACTION_LOCATION_SOURCE_SETTINGS
+            )
+            startActivity(callGPSSettingIntent)
+        })
+        alertDialogBuilder.setNegativeButton("Cancel", DialogInterface.OnClickListener { dialog, id -> dialog.cancel() })
+        val alert: AlertDialog = alertDialogBuilder.create()
+        alert.show()
     }
 
     private val locationListener = LocationListener {
         currentLatitude = it.latitude
         currentLongitude = it.longitude
         SharedPreferenceUtils.preferencePutString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE, currentLatitude.toString())
-        SharedPreferenceUtils.preferencePutString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LATITUDE, currentLongitude.toString())
+        SharedPreferenceUtils.preferencePutString(AppConstants.SharedPreferenceKeys.USER_CURRENT_LONGITUDE, currentLongitude.toString())
         Toast.makeText(requireActivity(), "Cur Lat/Long$currentLatitude,$currentLongitude", Toast.LENGTH_SHORT).show();
     }
 
-    fun requestPermission() {
+    private fun requestPermission() {
         ActivityCompat.requestPermissions(
             requireActivity(), arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO

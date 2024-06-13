@@ -19,7 +19,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.mapwidgetdemo.R
 import com.example.mapwidgetdemo.custom_camera.CameraActivity
-import com.example.mapwidgetdemo.custom_camera.VideoFragment
 import com.example.mapwidgetdemo.databinding.ActivityMapBinding
 import com.example.mapwidgetdemo.request.EditMarkerRequestModel
 import com.example.mapwidgetdemo.response.GetVideoResponse
@@ -50,6 +49,9 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
     private var zoomWidth: Int? = null
     private var zoomHeight: Int? = null
     private var zoomPadding: Double? = null
+
+
+
     var uploaddatalistforserver: ArrayList<MarkerModel> = ArrayList()
     var mcount = 0
 
@@ -67,7 +69,7 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
 
     lateinit var fragmentmapBinding: ActivityMapBinding
 
-    var mListener: OnFragmentInteractionListener? = null
+
 
     private var offersFragmentOne: MapViewFragment? = null
     fun getInstance(): MapViewFragment? {
@@ -85,8 +87,6 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
     override fun onAttach(context: Context) {
         super.onAttach(context)
         Log.d("logger", "MapView Fragment onAttach Called")
-        mListener = context as OnFragmentInteractionListener
-        mListener?.messageFromParentFragment()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -118,7 +118,7 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
             uploaddatalistforserver = words as ArrayList<MarkerModel>
         }
 
-        getdata()
+//        getdata()
     }
 
 
@@ -466,7 +466,7 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
     override fun onResume() {
         super.onResume()
         Log.d("logger", "Token ==> " + SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.F_TOKEN).toString())
-//        getdata()
+        getdata()
     }
 
     override fun onDestroy() {
@@ -717,10 +717,6 @@ class MapViewFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerCl
         }
     }
 
-    interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        fun messageFromParentFragment()
-    }
 }
 
 

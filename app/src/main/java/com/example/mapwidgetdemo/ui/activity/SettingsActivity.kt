@@ -107,50 +107,52 @@ class SettingsActivity : BaseActivity(), DialogClickInterface {
     }
 
     private fun setUserRole() {
-        if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.IS_GUEST)) {
-            isGuest =
-                SharedPreferenceUtils.preferenceGetBoolean(AppConstants.SharedPreferenceKeys.IS_GUEST, true)
-        }
-        if (!isGuest) {
-            binding.texUserMode.text =
-                "Welcome Back, " + SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.NAME)
 
-            binding.SwitchUpload.isChecked = !isGuest
-            binding.texLogout.text = getString(R.string.logout)
+        if(!isFromButtonClicked) {
 
-            if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.IS_REMOVE_FROM_DEVICE)) {
-                isremoveFromDevice =
+            if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.IS_GUEST)) {
+                isGuest =
+                    SharedPreferenceUtils.preferenceGetBoolean(AppConstants.SharedPreferenceKeys.IS_GUEST, true)
+            }
+            if (!isGuest) {
+                binding.texUserMode.text =
+                    "Welcome Back, " + SharedPreferenceUtils.preferenceGetString(AppConstants.SharedPreferenceKeys.NAME)
+
+                binding.SwitchUpload.isChecked = !isGuest
+                binding.texLogout.text = getString(R.string.logout)
+
+                if (SharedPreferenceUtils.hasPreferenceKey(AppConstants.SharedPreferenceKeys.IS_REMOVE_FROM_DEVICE)) {
+                    isremoveFromDevice =
+                        SharedPreferenceUtils.preferenceGetBoolean(AppConstants.SharedPreferenceKeys.IS_REMOVE_FROM_DEVICE, false)
+                }
+
+
+                binding.SwitchRemoveFromDevice.isChecked =
                     SharedPreferenceUtils.preferenceGetBoolean(AppConstants.SharedPreferenceKeys.IS_REMOVE_FROM_DEVICE, false)
-            }
 
 
-            binding.SwitchRemoveFromDevice.isChecked =
-                SharedPreferenceUtils.preferenceGetBoolean(AppConstants.SharedPreferenceKeys.IS_REMOVE_FROM_DEVICE, false)
+                if (binding.SwitchRemoveFromDevice.isChecked) {
+                    removedatafromDevice()
+                }
 
-
-            if (binding.SwitchRemoveFromDevice.isChecked) {
-                removedatafromDevice()
-            }
-
-            if (binding.SwitchUpload.isChecked) {
-                binding.SwitchRemoveFromDevice.isEnabled = true
-                binding.SwitchRemoveFromDevice.isClickable = true
-                binding.SwitchRemoveFromDevice.isFocusable = true
+                if (binding.SwitchUpload.isChecked) {
+                    binding.SwitchRemoveFromDevice.isEnabled = true
+                    binding.SwitchRemoveFromDevice.isClickable = true
+                    binding.SwitchRemoveFromDevice.isFocusable = true
+                } else {
+                    binding.SwitchRemoveFromDevice.isEnabled = false
+                    binding.SwitchRemoveFromDevice.isClickable = false
+                    binding.SwitchRemoveFromDevice.isFocusable = false
+                }
             } else {
+                binding.texUserMode.text = "Welcome Back, GUEST"
                 binding.SwitchRemoveFromDevice.isEnabled = false
                 binding.SwitchRemoveFromDevice.isClickable = false
+                binding.SwitchRemoveFromDevice.isChecked = false
                 binding.SwitchRemoveFromDevice.isFocusable = false
+                binding.texLogout.text = getString(R.string.str_login)
             }
-        } else {
-            binding.texUserMode.text = "Welcome Back, GUEST"
-            binding.SwitchRemoveFromDevice.isEnabled = false
-            binding.SwitchRemoveFromDevice.isClickable = false
-            binding.SwitchRemoveFromDevice.isChecked = false
-            binding.SwitchRemoveFromDevice.isFocusable = false
-            binding.texLogout.text = getString(R.string.str_login)
         }
-
-
 
 
         wordViewModel.allWords.observe(this@SettingsActivity) { words -> // Update the cached copy of the words in the adapter.
@@ -168,8 +170,10 @@ class SettingsActivity : BaseActivity(), DialogClickInterface {
                 if (!isFromButtonClicked) {
                     SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, true)
                     binding.SwitchUpload.isChecked = true
+                    setUserRole()
+                }else{
+                    binding.texLogout.text = getString(R.string.logout)
                 }
-                setUserRole()
             } else {
                 SharedPreferenceUtils.preferencePutBoolean(AppConstants.SharedPreferenceKeys.IS_UPLOAD_SERVER, false)
                 binding.SwitchUpload.isChecked = false

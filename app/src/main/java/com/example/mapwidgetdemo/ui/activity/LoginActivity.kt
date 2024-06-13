@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.example.mapwidgetdemo.databinding.ActivityLoginBinding
 import com.example.mapwidgetdemo.response.LoginResponse
+import com.example.mapwidgetdemo.response.demoOne
 import com.example.mapwidgetdemo.utils.AllEvents
 import com.example.mapwidgetdemo.utils.AppConstants.SharedPreferenceKeys.EMAIL
 import com.example.mapwidgetdemo.utils.SharedPreferenceUtils
@@ -24,6 +25,10 @@ class LoginActivity : BaseActivity() {
         setContentView(binding.root)
 
         initViews()
+
+
+
+demoOne(name = "jsjhfkjsd")
     }
 
     private fun initViews() {

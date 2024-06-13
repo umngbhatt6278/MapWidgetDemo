@@ -23,6 +23,7 @@ class ApiService(private val client: HttpClient) {
         url(ApiRoutes.LOGIN)
         header(HttpHeaders.ContentType, ContentType.Application.Json)
         body = loginRequestModel
+
     }
 
     suspend fun editMarker(loginRequestModel: EditMarkerRequestModel): CommonErrorResponse = client.post {

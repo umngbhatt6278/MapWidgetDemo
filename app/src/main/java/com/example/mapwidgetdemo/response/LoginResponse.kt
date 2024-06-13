@@ -8,3 +8,7 @@ data class LoginResponse(val data: Datam, val message: String, val status: Boole
 
 @Serializable
 data class Datam(val created_at: String, val email: String, val id: Int, val name: String, val token: String, val updated_at: String)
+
+
+@Serializable
+data class demoOne(val name: String)

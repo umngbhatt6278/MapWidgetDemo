@@ -54,7 +54,9 @@ class VideoActivity : BaseActivity(), DialogClickInterface {
 
         exoPlayer = ExoPlayer.Builder(this).build()
 
-        if (mcount < datalist!!.size) {
+        if (mcount < datalist!!.size)
+        {
+            binding.txtVideoName.text = datalist!![mcount]!!.videoname
             if (!datalist!![mcount]!!.videopath.contains("https")) {
                 val dataSourceFactory: DataSource.Factory =
                     DefaultDataSourceFactory(this, Util.getUserAgent(this, "com.example.mapwidgetdemo"))
@@ -76,8 +78,6 @@ class VideoActivity : BaseActivity(), DialogClickInterface {
         }
 
         binding.playerView.player = exoPlayer
-
-        binding.txtVideoName.text = datalist!![mcount]!!.videoname
 
         exoPlayer?.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
