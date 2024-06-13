@@ -35,6 +35,14 @@ android {
     buildFeatures {
         viewBinding true
     }
+    publishing {
+        publishing {
+            singleVariant("release") {
+                withSourcesJar()
+                withJavadocJar()
+            }
+        }
+    }
 }
 
 dependencies {
@@ -93,4 +101,18 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.10.0'
 
 
+}
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'com.github.umngbhatt6278'
+            artifactId = 'MapWidgetDemo'
+            version = '1.0.2'
+
+            afterEvaluate {
+                from components.release
+            }
+        }
+    }
 }
